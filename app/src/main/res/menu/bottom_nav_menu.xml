@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/FirstFragment"
+        android:icon="@android:drawable/checkbox_on_background"
+        android:title="" />
+    <item
+        android:id="@+id/nav_calendar"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:title="" />
+    <item
+        android:id="@+id/nav_timeline"
+        android:icon="@android:drawable/ic_menu_recent_history"
+        android:title="" />
+    <item
+        android:id="@+id/SettingsFragment"
+        android:icon="@drawable/setting"
+        android:title="" />
+</menu>

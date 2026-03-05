@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="primary_blue">#5171F1</color>
+    <color name="secondary_text">#757575</color>
+    <color name="divider_color">#EEEEEE</color>
+    <color name="header_bg">#F8F8F8</color>
+    <color name="dark_bg">#000000</color>
+    <color name="dark_card">#1C1C1E</color>
+    <color name="dark_secondary">#2C2C2E</color>
+    <color name="orange_accent">#FF6B35</color>
+    <color name="ios_gray">#8E8E93</color>
+    <color name="ios_separator">#38383A</color>
+    
+    <!-- New colors for redesign -->
+    <color name="green_primary">#2ECC71</color>
+    <color name="green_dark">#27AE60</color>
+    <color name="purple_primary">#9B59B6</color>
+    <color name="orange_primary">#FF6B35</color>
+    <color name="light_bg">#F5F5F5</color>
+    <color name="card_bg">#FFFFFF</color>
+    <color name="text_primary">#2C3E50</color>
+    <color name="text_secondary">#95A5A6</color>
+    <color name="priority_high">#E74C3C</color>
+    <color name="priority_medium">#FF6B35</color>
+    <color name="priority_low">#95A5A6</color>
+</resources>

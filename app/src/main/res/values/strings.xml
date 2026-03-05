@@ -1,0 +1,76 @@
+<resources>
+    <string name="app_name">TeeTickTick</string>
+    <string name="action_settings">Cài đặt</string>
+    <string name="first_fragment_label">Task</string>
+    <string name="second_fragment_label">Chi tiết</string>
+    <string name="add_task_title">Thêm nhiệm vụ mới</string>
+    <string name="add">Thêm</string>
+    <string name="cancel">Hủy</string>
+    
+    <!-- Smart List Settings -->
+    <string name="smart_list_settings">Tuỳ chỉnh thông minh</string>
+    <string name="smart_list_settings_subtitle">Tùy chỉnh danh sách hiển thị trong menu</string>
+    <string name="smart_lists_visibility">Hiển thị danh sách thông minh</string>
+    <string name="smart_lists_visibility_subtitle">Bật/tắt danh sách trong menu</string>
+    <string name="visible_in_menu">Hiển thị trong menu</string>
+    
+    <!-- Smart Lists -->
+    <string name="smart_list_all">Tất cả</string>
+    <string name="smart_list_today">Hôm nay</string>
+    <string name="smart_list_tomorrow">Ngày mai</string>
+    <string name="smart_list_next_7_days">7 ngày tới</string>
+    <string name="smart_list_assigned_to_me">Giao cho tôi</string>
+    <string name="smart_list_inbox">Hộp thư đến</string>
+    <string name="smart_list_completed">Đã hoàn thành</string>
+    <string name="smart_list_wont_do">Không làm</string>
+    
+    <!-- Navigation Drawer -->
+    <string name="nav_header_title">Nguyễn Nhật Thiên</string>
+    <string name="nav_header_subtitle">teeforwork21@gmail.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    
+    <!-- Task Groups -->
+    <string name="getting_started">Bắt đầu</string>
+    <string name="key_features">Tính năng chính</string>
+    <string name="explore_more">Khám phá thêm</string>
+    <string name="premium">Premium</string>
+    <string name="follow_us">Theo dõi chúng tôi</string>
+    <string name="calendar_check_schedule">Lịch: Kiểm tra lịch trình</string>
+    <string name="eisenhower_matrix">Ma trận Eisenhower: Ưu tiên công việc</string>
+    <string name="pomo_beat_procrastination">Pomo: Đánh bại trì hoãn</string>
+    <string name="habit_visualize_efforts">Thói quen: Hình dung nỗ lực</string>
+    <string name="more_features">Nhiều tính năng tuyệt vời hơn</string>
+    
+    <!-- Bottom Sheet -->
+    <string name="task_title_hint">Tiêu đề nhiệm vụ</string>
+    <string name="task_description_hint">Mô tả</string>
+    <string name="select_list">Chọn danh sách</string>
+    <string name="select_emoji">Chọn biểu tượng</string>
+    <string name="category">Danh mục</string>
+    <string name="priority">Ưu tiên</string>
+    <string name="high">Cao</string>
+    <string name="medium">Trung bình</string>
+    <string name="low">Thấp</string>
+    
+    <!-- Common -->
+    <string name="search">Tìm kiếm</string>
+    <string name="welcome">Chào mừng</string>
+    
+    <!-- Navigation Drawer Lists -->
+    <string name="main_lists">DANH SÁCH CHÍNH</string>
+    <string name="smart_lists">DANH SÁCH THÔNG MINH</string>
+    <string name="customize">⚙ Tùy chỉnh</string>
+    <string name="list_today">Hôm nay</string>
+    <string name="list_inbox">Hộp thư</string>
+    <string name="list_work">Công việc</string>
+    <string name="list_personal">Cá nhân</string>
+    <string name="list_shopping">Mua sắm</string>
+    <string name="list_learning">Học tập</string>
+    
+    <!-- Settings -->
+    <string name="settings">Cài đặt</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="vietnamese">Tiếng Việt</string>
+    <string name="english">Tiếng Anh</string>
+    <string name="select_language">Chọn ngôn ngữ</string>
+</resources>

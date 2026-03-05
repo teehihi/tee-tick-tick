@@ -1,0 +1,41 @@
+package hcmute.edu.vn.teeticktick.database;
+
+import androidx.lifecycle.LiveData;
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.Query;
+import androidx.room.Update;
+
+import java.util.List;
+
+@Dao
+public interface TaskDao {
+    
+    @Insert
+    long insert(TaskEntity task);
+    
+    @Update
+    void update(TaskEntity task);
+    
+    @Delete
+    void delete(TaskEntity task);
+    
+    @Query("SELECT * FROM tasks WHERE listName = :listName ORDER BY createdAt DESC")
+    LiveData<List<TaskEntity>> getTasksByList(String listName);
+    
+    @Query("SELECT * FROM tasks ORDER BY createdAt DESC")
+    LiveData<List<TaskEntity>> getAllTasks();
+    
+    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY createdAt DESC")
+    LiveData<List<TaskEntity>> getIncompleteTasks();
+    
+    @Query("SELECT * FROM tasks WHERE isCompleted = 1 ORDER BY createdAt DESC")
+    LiveData<List<TaskEntity>> getCompletedTasks();
+    
+    @Query("SELECT * FROM tasks WHERE dueDate IS NOT NULL AND dueDate >= :startDate AND dueDate <= :endDate ORDER BY dueDate ASC")
+    LiveData<List<TaskEntity>> getTasksByDateRange(long startDate, long endDate);
+    
+    @Query("DELETE FROM tasks WHERE isCompleted = 1")
+    void deleteCompletedTasks();
+}

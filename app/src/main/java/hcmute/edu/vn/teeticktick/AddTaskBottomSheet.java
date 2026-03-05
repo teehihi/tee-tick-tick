@@ -1,0 +1,207 @@
+package hcmute.edu.vn.teeticktick;
+
+import android.app.DatePickerDialog;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+
+public class AddTaskBottomSheet extends BottomSheetDialogFragment {
+
+    private EditText taskTitleInput;
+    private TextView priorityLow, priorityMedium, priorityHigh;
+    private TextView dateToday, dateTomorrow, dateThisWeek, datePick;
+    private TextView categoryPersonal, categoryWork, categoryShopping;
+    private Button addTaskButton;
+    private ImageView closeButton;
+    
+    private int selectedPriority = 1; // 0=Low, 1=Medium, 2=High
+    private String selectedCategory = "Personal";
+    private Long selectedDueDate = null;
+    private OnTaskAddedListener listener;
+
+    public interface OnTaskAddedListener {
+        void onTaskAdded(String title, String description, String emoji, String listName, Long dueDate);
+    }
+
+    public void setOnTaskAddedListener(OnTaskAddedListener listener) {
+        this.listener = listener;
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.bottom_sheet_add_task, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        initViews(view);
+        setupClickListeners();
+        
+        // Set default selections
+        selectPriority(priorityMedium, 1);
+        selectDate(dateToday, getTodayTimestamp());
+        selectCategory(categoryPersonal, "Personal");
+        
+        taskTitleInput.requestFocus();
+    }
+
+    private void initViews(View view) {
+        taskTitleInput = view.findViewById(R.id.task_title_input);
+        closeButton = view.findViewById(R.id.close_button);
+        
+        priorityLow = view.findViewById(R.id.priority_low);
+        priorityMedium = view.findViewById(R.id.priority_medium);
+        priorityHigh = view.findViewById(R.id.priority_high);
+        
+        dateToday = view.findViewById(R.id.date_today);
+        dateTomorrow = view.findViewById(R.id.date_tomorrow);
+        dateThisWeek = view.findViewById(R.id.date_this_week);
+        datePick = view.findViewById(R.id.date_pick);
+        
+        categoryPersonal = view.findViewById(R.id.category_personal);
+        categoryWork = view.findViewById(R.id.category_work);
+        categoryShopping = view.findViewById(R.id.category_shopping);
+        
+        addTaskButton = view.findViewById(R.id.add_task_button);
+    }
+
+    private void setupClickListeners() {
+        closeButton.setOnClickListener(v -> dismiss());
+        
+        // Priority buttons
+        priorityLow.setOnClickListener(v -> selectPriority(priorityLow, 0));
+        priorityMedium.setOnClickListener(v -> selectPriority(priorityMedium, 1));
+        priorityHigh.setOnClickListener(v -> selectPriority(priorityHigh, 2));
+        
+        // Date buttons
+        dateToday.setOnClickListener(v -> selectDate(dateToday, getTodayTimestamp()));
+        dateTomorrow.setOnClickListener(v -> selectDate(dateTomorrow, getTomorrowTimestamp()));
+        dateThisWeek.setOnClickListener(v -> selectDate(dateThisWeek, getThisWeekTimestamp()));
+        datePick.setOnClickListener(v -> showDatePicker());
+        
+        // Category buttons
+        categoryPersonal.setOnClickListener(v -> selectCategory(categoryPersonal, "Personal"));
+        categoryWork.setOnClickListener(v -> selectCategory(categoryWork, "Work"));
+        categoryShopping.setOnClickListener(v -> selectCategory(categoryShopping, "Shopping"));
+        
+        // Add task button
+        addTaskButton.setOnClickListener(v -> {
+            String title = taskTitleInput.getText().toString().trim();
+            if (!title.isEmpty() && listener != null) {
+                listener.onTaskAdded(title, "", "✅", selectedCategory, selectedDueDate);
+                dismiss();
+            }
+        });
+    }
+
+    private void selectPriority(TextView selected, int priority) {
+        priorityLow.setSelected(false);
+        priorityMedium.setSelected(false);
+        priorityHigh.setSelected(false);
+        
+        selected.setSelected(true);
+        selectedPriority = priority;
+        
+        // Update text colors
+        priorityLow.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        priorityMedium.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        priorityHigh.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        selected.setTextColor(getResources().getColor(R.color.white, null));
+    }
+
+    private void selectDate(TextView selected, Long timestamp) {
+        dateToday.setSelected(false);
+        dateTomorrow.setSelected(false);
+        dateThisWeek.setSelected(false);
+        datePick.setSelected(false);
+        
+        selected.setSelected(true);
+        selectedDueDate = timestamp;
+        
+        // Update text colors
+        dateToday.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        dateTomorrow.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        dateThisWeek.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        datePick.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        selected.setTextColor(getResources().getColor(R.color.white, null));
+    }
+
+    private void selectCategory(TextView selected, String category) {
+        categoryPersonal.setSelected(false);
+        categoryWork.setSelected(false);
+        categoryShopping.setSelected(false);
+        
+        selected.setSelected(true);
+        selectedCategory = category;
+        
+        // Update text colors
+        categoryPersonal.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        categoryWork.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        categoryShopping.setTextColor(getResources().getColor(R.color.text_secondary, null));
+        selected.setTextColor(getResources().getColor(R.color.white, null));
+    }
+
+    private void showDatePicker() {
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+            requireContext(),
+            (view, year, month, dayOfMonth) -> {
+                Calendar selected = Calendar.getInstance();
+                selected.set(year, month, dayOfMonth);
+                selectDate(datePick, selected.getTimeInMillis());
+                
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd", Locale.getDefault());
+                datePick.setText(sdf.format(selected.getTime()));
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        );
+        datePickerDialog.show();
+    }
+
+    private long getTodayTimestamp() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        return calendar.getTimeInMillis();
+    }
+
+    private long getTomorrowTimestamp() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        return calendar.getTimeInMillis();
+    }
+
+    private long getThisWeekTimestamp() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DAY_OF_MONTH, 7);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        return calendar.getTimeInMillis();
+    }
+
+    @Override
+    public int getTheme() {
+        return R.style.BottomSheetDialogTheme;
+    }
+}

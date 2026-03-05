@@ -1,0 +1,76 @@
+<resources>
+    <string name="app_name">TeeTickTick</string>
+    <string name="action_settings">Settings</string>
+    <string name="first_fragment_label">Tasks</string>
+    <string name="second_fragment_label">Details</string>
+    <string name="add_task_title">Add new task</string>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
+    
+    <!-- Smart List Settings -->
+    <string name="smart_list_settings">Smart List Settings</string>
+    <string name="smart_list_settings_subtitle">Customize which lists appear in your menu</string>
+    <string name="smart_lists_visibility">Smart Lists Visibility</string>
+    <string name="smart_lists_visibility_subtitle">Toggle lists to show or hide them in the menu</string>
+    <string name="visible_in_menu">Visible in menu</string>
+    
+    <!-- Smart Lists -->
+    <string name="smart_list_all">All</string>
+    <string name="smart_list_today">Today</string>
+    <string name="smart_list_tomorrow">Tomorrow</string>
+    <string name="smart_list_next_7_days">Next 7 Days</string>
+    <string name="smart_list_assigned_to_me">Assigned to Me</string>
+    <string name="smart_list_inbox">Inbox</string>
+    <string name="smart_list_completed">Completed</string>
+    <string name="smart_list_wont_do">Won\'t Do</string>
+    
+    <!-- Navigation Drawer -->
+    <string name="nav_header_title">Nguyen Nhat Thien</string>
+    <string name="nav_header_subtitle">teeforwork21@gmail.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    
+    <!-- Task Groups -->
+    <string name="getting_started">Getting Started</string>
+    <string name="key_features">Key Features</string>
+    <string name="explore_more">Explore More</string>
+    <string name="premium">Premium</string>
+    <string name="follow_us">Follow us</string>
+    <string name="calendar_check_schedule">Calendar: Check your schedule</string>
+    <string name="eisenhower_matrix">Eisenhower Matrix: Prioritize tasks</string>
+    <string name="pomo_beat_procrastination">Pomo: Beat procrastination</string>
+    <string name="habit_visualize_efforts">Habit: Visualize your efforts</string>
+    <string name="more_features">More amazing features</string>
+    
+    <!-- Bottom Sheet -->
+    <string name="task_title_hint">Task title</string>
+    <string name="task_description_hint">Description</string>
+    <string name="select_list">Select list</string>
+    <string name="select_emoji">Select emoji</string>
+    <string name="category">Category</string>
+    <string name="priority">Priority</string>
+    <string name="high">High</string>
+    <string name="medium">Medium</string>
+    <string name="low">Low</string>
+    
+    <!-- Common -->
+    <string name="search">Search</string>
+    <string name="welcome">Welcome</string>
+    
+    <!-- Navigation Drawer Lists -->
+    <string name="main_lists">MAIN LISTS</string>
+    <string name="smart_lists">SMART LISTS</string>
+    <string name="customize">⚙ Customize</string>
+    <string name="list_today">Today</string>
+    <string name="list_inbox">Inbox</string>
+    <string name="list_work">Work</string>
+    <string name="list_personal">Personal</string>
+    <string name="list_shopping">Shopping</string>
+    <string name="list_learning">Learning</string>
+    
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="language">Language</string>
+    <string name="vietnamese">Vietnamese</string>
+    <string name="english">English</string>
+    <string name="select_language">Select Language</string>
+</resources>

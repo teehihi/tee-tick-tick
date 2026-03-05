@@ -1,0 +1,28 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.TeeTickTick" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/light_bg</item>
+        <item name="colorSecondary">@color/green_primary</item>
+        <item name="colorSurface">@color/light_bg</item>
+        <item name="colorControlActivated">@color/green_primary</item>
+        <item name="android:statusBarColor">@color/light_bg</item>
+        <item name="android:navigationBarColor">@color/card_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <style name="Theme.TeeTickTick" parent="Base.Theme.TeeTickTick" />
+
+    <style name="Theme.TeeTickTick.AppBarOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <style name="Theme.TeeTickTick.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    
+    <!-- Splash Screen Theme -->
+    <style name="Theme.TeeTickTick.Splash" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">@color/white</item>
+        <item name="android:statusBarColor">@color/white</item>
+        <item name="android:navigationBarColor">@color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>
