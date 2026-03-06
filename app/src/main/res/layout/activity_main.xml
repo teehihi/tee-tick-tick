@@ -60,10 +60,15 @@
             android:layout_gravity="bottom"
             android:background="@color/card_bg"
             android:elevation="8dp"
-            android:fitsSystemWindows="true"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            app:itemIconSize="24dp"
             app:itemIconTint="@color/text_primary"
+            app:itemTextColor="@color/text_primary"
+            app:itemTextAppearanceActive="@style/BottomNavTextStyle"
+            app:itemTextAppearanceInactive="@style/BottomNavTextStyle"
             app:itemRippleColor="@android:color/transparent"
-            app:labelVisibilityMode="unlabeled"
+            app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_nav_menu" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton

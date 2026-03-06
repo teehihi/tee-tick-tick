@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         
         appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.FirstFragment)
+                R.id.FirstFragment, R.id.SecondFragment, R.id.TimelineFragment, R.id.SettingsFragment)
                 .setOpenableLayout(binding.drawerLayout)
                 .build();
         
@@ -367,7 +367,18 @@ public class MainActivity extends AppCompatActivity {
         bottomSheet.setOnTaskAddedListener((title, description, emoji, listName, dueDate) -> 
             addTaskToFragment(title, description, emoji, listName, dueDate)
         );
+        
+        // Hide toolbar and FAB to prevent overlapping bottom sheet
+        binding.toolbar.setVisibility(View.INVISIBLE);
+        binding.fab.setVisibility(View.INVISIBLE);
+        
         bottomSheet.show(getSupportFragmentManager(), "AddTaskBottomSheet");
+    }
+    
+    // Called from AddTaskBottomSheet.onDismiss to restore toolbar and FAB
+    public void restoreToolbarAndFab() {
+        binding.toolbar.setVisibility(View.VISIBLE);
+        binding.fab.setVisibility(View.VISIBLE);
     }
 
     private void addTaskToFragment(String title, String description, String emoji, String listName, Long dueDate) {

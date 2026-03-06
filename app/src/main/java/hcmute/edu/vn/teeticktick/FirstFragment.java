@@ -44,6 +44,48 @@ public class FirstFragment extends Fragment {
         setupInitialData();
         
         adapter = new TaskGroupAdapter(items);
+        adapter.setOnTaskDeleteListener((task, position) -> {
+            // Xóa task khỏi database nếu có ID
+            if (task.getId() > 0) {
+                TaskEntity taskEntity = new TaskEntity(
+                    task.getTitle(),
+                    "",
+                    task.getEmoji(),
+                    task.isCompleted(),
+                    "",
+                    0,
+                    0,
+                    null
+                );
+                taskEntity.setId(task.getId());
+                taskViewModel.delete(taskEntity);
+                android.util.Log.d("DATABASE", "Deleted task from database: " + task.getTitle() + " (ID: " + task.getId() + ")");
+            }
+        });
+        adapter.setOnTaskCheckedChangeListener((task, isChecked) -> {
+            // Cập nhật trạng thái completed trong database
+            if (task.getId() > 0) {
+                TaskEntity taskEntity = new TaskEntity(
+                    task.getTitle(),
+                    "",
+                    task.getEmoji(),
+                    isChecked,
+                    taskViewModel.getCurrentFilter(),
+                    0,
+                    System.currentTimeMillis(),
+                    null
+                );
+                taskEntity.setId(task.getId());
+                taskViewModel.update(taskEntity);
+                android.util.Log.d("DATABASE", "Updated task completed status: " + task.getTitle() + " = " + isChecked);
+            }
+        });
+        adapter.setOnTaskClickListener(task -> {
+            // Mở TaskDetailBottomSheet để xem và chỉnh sửa task
+            if (task.getId() > 0) {
+                showTaskDetailDialog(task);
+            }
+        });
         binding.recyclerviewTasks.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerviewTasks.setAdapter(adapter);
         
@@ -90,13 +132,24 @@ public class FirstFragment extends Fragment {
     // observeTasks() removed because we now rely on individual filter methods.
 
     public void addTask(String title, String description, String emoji, String listName, Long dueDate) {
-        android.util.Log.d("DATABASE", "Adding task: " + title + " | Emoji: " + emoji + " | List: " + listName);
+        // Lưu task vào list hiện tại đang được chọn, không phải list từ bottom sheet
+        String currentList = taskViewModel.getCurrentFilter();
+        
+        // Nếu đang ở smart list (Today, Tomorrow, etc.), lưu vào Inbox
+        if (currentList.equals("Today") || currentList.equals("Tomorrow") || 
+            currentList.equals("Next 7 Days") || currentList.equals("All") || 
+            currentList.equals("Assigned to Me") || currentList.equals("Completed") || 
+            currentList.equals("Won't Do") || currentList.equals("Welcome")) {
+            currentList = "Inbox";
+        }
+        
+        android.util.Log.d("DATABASE", "Adding task: " + title + " | Emoji: " + emoji + " | List: " + currentList);
         TaskEntity taskEntity = new TaskEntity(
             title,
             description,
             emoji,
             false,
-            listName,
+            currentList,
             0,
             System.currentTimeMillis(),
             dueDate
@@ -215,8 +268,8 @@ public class FirstFragment extends Fragment {
             // Add new tasks from database
             for (TaskEntity entity : taskEntities) {
                 android.util.Log.d("DATABASE", "Task: " + entity.getTitle() + " | List: " + entity.getListName());
-                Task task = new Task(entity.getEmoji(), entity.getTitle());
-                task.setCompleted(entity.isCompleted());
+                // Tạo Task với ID từ database để có thể xóa sau này
+                Task task = new Task(entity.getId(), entity.getEmoji(), entity.getTitle(), entity.isCompleted());
                 gettingStartedGroup.addTask(task);
             }
             
@@ -338,5 +391,32 @@ public class FirstFragment extends Fragment {
             String displayName = getLocalizedListName(currentFilter);
             updateTitle(displayName);
         }
+    }
+    
+    private void showTaskDetailDialog(Task task) {
+        // Lấy TaskEntity từ database để có đầy đủ thông tin
+        taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), taskEntities -> {
+            if (taskEntities != null) {
+                for (TaskEntity entity : taskEntities) {
+                    if (entity.getId() == task.getId()) {
+                        TaskDetailBottomSheet bottomSheet = new TaskDetailBottomSheet();
+                        bottomSheet.setTaskEntity(entity);
+                        
+                        bottomSheet.setOnTaskUpdateListener(updatedTask -> {
+                            taskViewModel.update(updatedTask);
+                            android.util.Log.d("DATABASE", "Updated task: " + updatedTask.getTitle());
+                        });
+                        
+                        bottomSheet.setOnTaskDeleteListener(taskToDelete -> {
+                            taskViewModel.delete(taskToDelete);
+                            android.util.Log.d("DATABASE", "Deleted task: " + taskToDelete.getTitle());
+                        });
+                        
+                        bottomSheet.show(getParentFragmentManager(), "TaskDetailBottomSheet");
+                        break;
+                    }
+                }
+            }
+        });
     }
 }

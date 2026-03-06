@@ -19,34 +19,51 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class AddTaskBottomSheet extends BottomSheetDialogFragment {
+import hcmute.edu.vn.teeticktick.database.TaskEntity;
+
+public class TaskDetailBottomSheet extends BottomSheetDialogFragment {
 
     private EditText taskTitleInput;
     private TextView emojiSelector;
     private TextView priorityLow, priorityMedium, priorityHigh;
     private TextView dateToday, dateTomorrow, dateThisWeek, datePick;
     private TextView categoryPersonal, categoryWork, categoryShopping;
-    private Button addTaskButton;
+    private Button updateTaskButton, deleteTaskButton;
     private ImageView closeButton;
     
-    private int selectedPriority = 1; // 0=Low, 1=Medium, 2=High
+    private int selectedPriority = 1;
     private String selectedCategory = "Personal";
     private String selectedEmoji = "✅";
     private Long selectedDueDate = null;
-    private OnTaskAddedListener listener;
+    
+    private TaskEntity taskEntity;
+    private OnTaskUpdateListener updateListener;
+    private OnTaskDeleteListener deleteListener;
 
-    public interface OnTaskAddedListener {
-        void onTaskAdded(String title, String description, String emoji, String listName, Long dueDate);
+    public interface OnTaskUpdateListener {
+        void onTaskUpdate(TaskEntity task);
+    }
+    
+    public interface OnTaskDeleteListener {
+        void onTaskDelete(TaskEntity task);
     }
 
-    public void setOnTaskAddedListener(OnTaskAddedListener listener) {
-        this.listener = listener;
+    public void setTaskEntity(TaskEntity task) {
+        this.taskEntity = task;
+    }
+
+    public void setOnTaskUpdateListener(OnTaskUpdateListener listener) {
+        this.updateListener = listener;
+    }
+    
+    public void setOnTaskDeleteListener(OnTaskDeleteListener listener) {
+        this.deleteListener = listener;
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.bottom_sheet_add_task, container, false);
+        return inflater.inflate(R.layout.bottom_sheet_task_detail, container, false);
     }
 
     @Override
@@ -54,14 +71,12 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         initViews(view);
+        
+        if (taskEntity != null) {
+            populateTaskData();
+        }
+        
         setupClickListeners();
-        
-        // Set default selections
-        selectPriority(priorityMedium, 1);
-        selectDate(dateToday, getTodayTimestamp());
-        selectCategory(categoryPersonal, "Personal");
-        
-        taskTitleInput.requestFocus();
     }
 
     private void initViews(View view) {
@@ -82,15 +97,50 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         categoryWork = view.findViewById(R.id.category_work);
         categoryShopping = view.findViewById(R.id.category_shopping);
         
-        addTaskButton = view.findViewById(R.id.add_task_button);
+        updateTaskButton = view.findViewById(R.id.update_task_button);
+        deleteTaskButton = view.findViewById(R.id.delete_task_button);
+    }
+    
+    private void populateTaskData() {
+        taskTitleInput.setText(taskEntity.getTitle());
+        
+        if (taskEntity.getEmoji() != null && !taskEntity.getEmoji().isEmpty()) {
+            selectedEmoji = taskEntity.getEmoji();
+            emojiSelector.setText(selectedEmoji);
+        }
+        
+        selectedPriority = taskEntity.getPriority();
+        selectPriority(
+            selectedPriority == 0 ? priorityLow : 
+            selectedPriority == 2 ? priorityHigh : priorityMedium, 
+            selectedPriority
+        );
+        
+        selectedDueDate = taskEntity.getDueDate();
+        if (selectedDueDate != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd", Locale.getDefault());
+            datePick.setText(sdf.format(selectedDueDate));
+            selectDate(datePick, selectedDueDate);
+        } else {
+            selectDate(dateToday, getTodayTimestamp());
+        }
+        
+        selectedCategory = taskEntity.getListName();
+        TextView categoryView = categoryPersonal;
+        if ("Work".equals(selectedCategory)) {
+            categoryView = categoryWork;
+        } else if ("Shopping".equals(selectedCategory)) {
+            categoryView = categoryShopping;
+        }
+        selectCategory(categoryView, selectedCategory);
     }
 
     private void setupClickListeners() {
         closeButton.setOnClickListener(v -> dismiss());
         
-        // Emoji selector - open emoji picker
         emojiSelector.setOnClickListener(v -> {
-            hcmute.edu.vn.teeticktick.bottomsheet.EmojiPickerBottomSheet emojiPicker = new hcmute.edu.vn.teeticktick.bottomsheet.EmojiPickerBottomSheet();
+            hcmute.edu.vn.teeticktick.bottomsheet.EmojiPickerBottomSheet emojiPicker = 
+                new hcmute.edu.vn.teeticktick.bottomsheet.EmojiPickerBottomSheet();
             emojiPicker.setOnEmojiSelectedListener(emoji -> {
                 selectedEmoji = emoji;
                 emojiSelector.setText(emoji);
@@ -98,27 +148,36 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
             emojiPicker.show(getParentFragmentManager(), "EmojiPicker");
         });
         
-        // Priority buttons
         priorityLow.setOnClickListener(v -> selectPriority(priorityLow, 0));
         priorityMedium.setOnClickListener(v -> selectPriority(priorityMedium, 1));
         priorityHigh.setOnClickListener(v -> selectPriority(priorityHigh, 2));
         
-        // Date buttons
         dateToday.setOnClickListener(v -> selectDate(dateToday, getTodayTimestamp()));
         dateTomorrow.setOnClickListener(v -> selectDate(dateTomorrow, getTomorrowTimestamp()));
         dateThisWeek.setOnClickListener(v -> selectDate(dateThisWeek, getThisWeekTimestamp()));
         datePick.setOnClickListener(v -> showDatePicker());
         
-        // Category buttons
         categoryPersonal.setOnClickListener(v -> selectCategory(categoryPersonal, "Personal"));
         categoryWork.setOnClickListener(v -> selectCategory(categoryWork, "Work"));
         categoryShopping.setOnClickListener(v -> selectCategory(categoryShopping, "Shopping"));
         
-        // Add task button
-        addTaskButton.setOnClickListener(v -> {
+        updateTaskButton.setOnClickListener(v -> {
             String title = taskTitleInput.getText().toString().trim();
-            if (!title.isEmpty() && listener != null) {
-                listener.onTaskAdded(title, "", selectedEmoji, selectedCategory, selectedDueDate);
+            if (!title.isEmpty() && taskEntity != null && updateListener != null) {
+                taskEntity.setTitle(title);
+                taskEntity.setEmoji(selectedEmoji);
+                taskEntity.setPriority(selectedPriority);
+                taskEntity.setDueDate(selectedDueDate);
+                taskEntity.setListName(selectedCategory);
+                
+                updateListener.onTaskUpdate(taskEntity);
+                dismiss();
+            }
+        });
+        
+        deleteTaskButton.setOnClickListener(v -> {
+            if (taskEntity != null && deleteListener != null) {
+                deleteListener.onTaskDelete(taskEntity);
                 dismiss();
             }
         });
@@ -132,7 +191,6 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         selected.setSelected(true);
         selectedPriority = priority;
         
-        // Update text colors
         priorityLow.setTextColor(getResources().getColor(R.color.text_secondary, null));
         priorityMedium.setTextColor(getResources().getColor(R.color.text_secondary, null));
         priorityHigh.setTextColor(getResources().getColor(R.color.text_secondary, null));
@@ -148,7 +206,6 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         selected.setSelected(true);
         selectedDueDate = timestamp;
         
-        // Update text colors
         dateToday.setTextColor(getResources().getColor(R.color.text_secondary, null));
         dateTomorrow.setTextColor(getResources().getColor(R.color.text_secondary, null));
         dateThisWeek.setTextColor(getResources().getColor(R.color.text_secondary, null));
@@ -164,7 +221,6 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         selected.setSelected(true);
         selectedCategory = category;
         
-        // Update text colors
         categoryPersonal.setTextColor(getResources().getColor(R.color.text_secondary, null));
         categoryWork.setTextColor(getResources().getColor(R.color.text_secondary, null));
         categoryShopping.setTextColor(getResources().getColor(R.color.text_secondary, null));
@@ -173,6 +229,10 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
 
     private void showDatePicker() {
         Calendar calendar = Calendar.getInstance();
+        if (selectedDueDate != null) {
+            calendar.setTimeInMillis(selectedDueDate);
+        }
+        
         DatePickerDialog datePickerDialog = new DatePickerDialog(
             requireContext(),
             (view, year, month, dayOfMonth) -> {
@@ -211,15 +271,6 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         return calendar.getTimeInMillis();
-    }
-
-    @Override
-    public void onDismiss(@NonNull android.content.DialogInterface dialog) {
-        super.onDismiss(dialog);
-        // Restore toolbar and FAB in MainActivity
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).restoreToolbarAndFab();
-        }
     }
 
     @Override

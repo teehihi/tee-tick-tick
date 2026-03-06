@@ -37,20 +37,42 @@
             android:background="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 
-    <!-- Task Input -->
-    <EditText
-        android:id="@+id/task_title_input"
+    <!-- Emoji + Task Input Row -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="@drawable/bg_input_field"
-        android:hint="What do you need to do?"
-        android:textColorHint="@color/text_secondary"
-        android:textColor="@color/text_primary"
-        android:textSize="16sp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:inputType="textCapSentences"
-        android:layout_marginBottom="24dp" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="24dp">
+
+        <!-- Emoji Selector Button -->
+        <TextView
+            android:id="@+id/emoji_selector"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:text="✅"
+            android:textSize="28sp"
+            android:gravity="center"
+            android:background="@drawable/bg_input_field"
+            android:layout_marginEnd="10dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Task Input -->
+        <EditText
+            android:id="@+id/task_title_input"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_input_field"
+            android:hint="What do you need to do?"
+            android:textColorHint="@color/text_secondary"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:inputType="textCapSentences" />
+    </LinearLayout>
 
     <!-- Priority Section -->
     <LinearLayout
@@ -340,6 +362,7 @@
         android:textSize="16sp"
         android:textStyle="bold"
         android:background="@drawable/bg_button_green"
+        app:backgroundTint="@null"
         android:elevation="0dp"
         android:stateListAnimator="@null" />
 

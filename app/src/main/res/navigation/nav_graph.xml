@@ -15,16 +15,24 @@
             android:id="@+id/action_FirstFragment_to_SecondFragment"
             app:destination="@id/SecondFragment" />
     </fragment>
+    
     <fragment
         android:id="@+id/SecondFragment"
         android:name="hcmute.edu.vn.teeticktick.SecondFragment"
-        android:label="@string/second_fragment_label"
+        android:label="@string/nav_calendar"
         tools:layout="@layout/fragment_second">
 
         <action
             android:id="@+id/action_SecondFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
     </fragment>
+    
+    <fragment
+        android:id="@+id/TimelineFragment"
+        android:name="hcmute.edu.vn.teeticktick.TimelineFragment"
+        android:label="@string/nav_timeline"
+        tools:layout="@layout/fragment_timeline" />
+    
     <fragment
         android:id="@+id/SettingsFragment"
         android:name="hcmute.edu.vn.teeticktick.SettingsFragment"

@@ -74,4 +74,10 @@
     <string name="vietnamese">Tiếng Việt</string>
     <string name="english">Tiếng Anh</string>
     <string name="select_language">Chọn ngôn ngữ</string>
+    
+    <!-- Bottom Navigation -->
+    <string name="nav_tasks">Nhiệm vụ</string>
+    <string name="nav_calendar">Lịch</string>
+    <string name="nav_timeline">Dòng thời gian</string>
+    <string name="nav_settings">Cài đặt</string>
 </resources>

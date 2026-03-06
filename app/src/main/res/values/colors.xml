@@ -14,6 +14,7 @@
     <color name="ios_separator">#38383A</color>
     
     <!-- New colors for redesign -->
+    <color name="colorPrimary">#2ECC71</color>
     <color name="green_primary">#2ECC71</color>
     <color name="green_dark">#27AE60</color>
     <color name="purple_primary">#9B59B6</color>

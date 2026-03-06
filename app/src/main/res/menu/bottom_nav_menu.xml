@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Tab Nhiệm vụ: Hiển thị danh sách các task cần làm -->
     <item
         android:id="@+id/FirstFragment"
-        android:icon="@android:drawable/checkbox_on_background"
-        android:title="" />
+        android:icon="@drawable/ic_tasks"
+        android:title="@string/nav_tasks" />
+    
+    <!-- Tab Lịch: Xem các task theo lịch -->
     <item
-        android:id="@+id/nav_calendar"
-        android:icon="@android:drawable/ic_menu_my_calendar"
-        android:title="" />
+        android:id="@+id/SecondFragment"
+        android:icon="@drawable/ic_calendar"
+        android:title="@string/nav_calendar" />
+    
+    <!-- Tab Dòng thời gian: Xem lịch sử và timeline các task -->
     <item
-        android:id="@+id/nav_timeline"
-        android:icon="@android:drawable/ic_menu_recent_history"
-        android:title="" />
+        android:id="@+id/TimelineFragment"
+        android:icon="@drawable/ic_timeline"
+        android:title="@string/nav_timeline" />
+    
+    <!-- Tab Cài đặt: Các tùy chọn cài đặt ứng dụng -->
     <item
         android:id="@+id/SettingsFragment"
-        android:icon="@drawable/setting"
-        android:title="" />
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_settings" />
 </menu>

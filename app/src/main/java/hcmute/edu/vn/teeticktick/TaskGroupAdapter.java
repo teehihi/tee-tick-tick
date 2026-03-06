@@ -20,9 +20,39 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private static final int TYPE_TASK = 1;
 
     private List<Object> items;
+    private OnTaskDeleteListener deleteListener;
+    private OnTaskCheckedChangeListener checkedChangeListener;
+    private OnTaskClickListener clickListener;
+    
+    // Interface để callback khi xóa task
+    public interface OnTaskDeleteListener {
+        void onTaskDelete(Task task, int position);
+    }
+    
+    // Interface để callback khi thay đổi trạng thái checkbox
+    public interface OnTaskCheckedChangeListener {
+        void onTaskCheckedChange(Task task, boolean isChecked);
+    }
+    
+    // Interface để callback khi click vào task
+    public interface OnTaskClickListener {
+        void onTaskClick(Task task);
+    }
 
     public TaskGroupAdapter(List<Object> items) {
         this.items = items;
+    }
+    
+    public void setOnTaskDeleteListener(OnTaskDeleteListener listener) {
+        this.deleteListener = listener;
+    }
+    
+    public void setOnTaskCheckedChangeListener(OnTaskCheckedChangeListener listener) {
+        this.checkedChangeListener = listener;
+    }
+    
+    public void setOnTaskClickListener(OnTaskClickListener listener) {
+        this.clickListener = listener;
     }
 
     @Override
@@ -135,11 +165,22 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 task.setCompleted(isChecked);
                 updateStrikeThrough(titleTextView, isChecked);
+                // Gọi callback để cập nhật database
+                if (checkedChangeListener != null) {
+                    checkedChangeListener.onTaskCheckedChange(task, isChecked);
+                }
             });
             
             // Reset card position
             foregroundCard.setX(0);
             isOpen = false;
+            
+            // Setup click listener for task title
+            titleTextView.setOnClickListener(v -> {
+                if (clickListener != null && !isOpen) {
+                    clickListener.onTaskClick(task);
+                }
+            });
             
             // Setup swipe gesture
             setupSwipeGesture();
@@ -149,6 +190,10 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 animateCardOut(foregroundCard, () -> {
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
+                        // Gọi callback để xóa khỏi database
+                        if (deleteListener != null) {
+                            deleteListener.onTaskDelete(task, position);
+                        }
                         items.remove(position);
                         notifyItemRemoved(position);
                     }
@@ -202,6 +247,11 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                                 animateCardOut(v, () -> {
                                     int position = getAdapterPosition();
                                     if (position != RecyclerView.NO_POSITION) {
+                                        Task taskToDelete = (Task) items.get(position);
+                                        // Gọi callback để xóa khỏi database
+                                        if (deleteListener != null) {
+                                            deleteListener.onTaskDelete(taskToDelete, position);
+                                        }
                                         items.remove(position);
                                         notifyItemRemoved(position);
                                     }
