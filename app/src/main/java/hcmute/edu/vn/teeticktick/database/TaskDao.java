@@ -36,6 +36,15 @@ public interface TaskDao {
     @Query("SELECT * FROM tasks WHERE dueDate IS NOT NULL AND dueDate >= :startDate AND dueDate <= :endDate ORDER BY dueDate ASC")
     LiveData<List<TaskEntity>> getTasksByDateRange(long startDate, long endDate);
     
+    @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 0 AND listName = :listName")
+    LiveData<Integer> getActiveTaskCountByList(String listName);
+    
+    @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 0")
+    LiveData<Integer> getActiveIncompleteTaskCount();
+    
+    @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 0 AND dueDate >= :startDate AND dueDate <= :endDate")
+    LiveData<Integer> getActiveTaskCountByDateRange(long startDate, long endDate);
+    
     @Query("DELETE FROM tasks WHERE isCompleted = 1")
     void deleteCompletedTasks();
 }

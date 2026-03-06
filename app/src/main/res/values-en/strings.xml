@@ -60,6 +60,7 @@
     <string name="main_lists">MAIN LISTS</string>
     <string name="smart_lists">SMART LISTS</string>
     <string name="customize">⚙ Customize</string>
+    <string name="add_list">+ Add List</string>
     <string name="list_today">Today</string>
     <string name="list_inbox">Inbox</string>
     <string name="list_work">Work</string>

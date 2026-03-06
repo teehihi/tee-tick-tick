@@ -57,4 +57,27 @@ public class TaskViewModel extends AndroidViewModel {
     public void deleteCompletedTasks() {
         repository.deleteCompletedTasks();
     }
+
+    public LiveData<Integer> getActiveTaskCountByList(String listName) {
+        return repository.getActiveTaskCountByList(listName);
+    }
+    
+    public LiveData<Integer> getActiveIncompleteTaskCount() {
+        return repository.getActiveIncompleteTaskCount();
+    }
+    
+    public LiveData<Integer> getActiveTaskCountByDateRange(long startDate, long endDate) {
+        return repository.getActiveTaskCountByDateRange(startDate, endDate);
+    }
+    
+    // Store current filter to persist across fragment recreations
+    private String currentFilter = "Welcome";
+    
+    public String getCurrentFilter() {
+        return currentFilter;
+    }
+    
+    public void setCurrentFilter(String filter) {
+        this.currentFilter = filter;
+    }
 }

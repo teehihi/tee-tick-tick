@@ -15,14 +15,18 @@ import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.lifecycle.ViewModelProvider;
+import android.widget.TextView;
 
 import hcmute.edu.vn.teeticktick.databinding.ActivityMainBinding;
+import hcmute.edu.vn.teeticktick.viewmodel.TaskViewModel;
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     private SharedPreferences prefs;
+    private String currentSelectedMenu = "Welcome";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +88,9 @@ public class MainActivity extends AppCompatActivity {
         }
         
         binding.fab.setOnClickListener(view -> showAddTaskDialog());
+        
+        TaskViewModel taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
+        setupCountObservers(taskViewModel);
     }
 
     @Override
@@ -142,6 +149,62 @@ public class MainActivity extends AppCompatActivity {
                ((startB + (int) (fraction * (endB - startB))));
     }
 
+    private void setupCountObservers(TaskViewModel taskViewModel) {
+        View drawerView = binding.customDrawer;
+        
+        TextView countInbox = drawerView.findViewById(R.id.count_inbox);
+        TextView countWork = drawerView.findViewById(R.id.count_work);
+        TextView countPersonal = drawerView.findViewById(R.id.count_personal);
+        TextView countShopping = drawerView.findViewById(R.id.count_shopping);
+        TextView countLearning = drawerView.findViewById(R.id.count_learning);
+        
+        long startOfDay = getStartOfDay();
+        long endOfDay = getEndOfDay();
+
+        taskViewModel.getActiveTaskCountByDateRange(startOfDay, endOfDay).observe(this, count -> {
+            // TextView smartCountToday = drawerView.findViewById(R.id.smart_today).findViewById(R.id.count_today); // Need to attach a text view to smart_today to show count if user wants count on smart list later
+            // We removed count_today from main list, so no need to update it here unless we add it to smart_today
+        });
+
+        taskViewModel.getActiveIncompleteTaskCount().observe(this, count -> {
+            countInbox.setText((count != null && count > 0) ? String.valueOf(count) : "");
+        });
+
+        taskViewModel.getActiveTaskCountByList("Work").observe(this, count -> {
+            countWork.setText((count != null && count > 0) ? String.valueOf(count) : "");
+        });
+
+        taskViewModel.getActiveTaskCountByList("Personal").observe(this, count -> {
+            countPersonal.setText((count != null && count > 0) ? String.valueOf(count) : "");
+        });
+
+        taskViewModel.getActiveTaskCountByList("Shopping").observe(this, count -> {
+            countShopping.setText((count != null && count > 0) ? String.valueOf(count) : "");
+        });
+
+        taskViewModel.getActiveTaskCountByList("Learning").observe(this, count -> {
+            countLearning.setText((count != null && count > 0) ? String.valueOf(count) : "");
+        });
+    }
+
+    private long getStartOfDay() {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        calendar.set(java.util.Calendar.MINUTE, 0);
+        calendar.set(java.util.Calendar.SECOND, 0);
+        calendar.set(java.util.Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
+    }
+
+    private long getEndOfDay() {
+        java.util.Calendar calendar = java.util.Calendar.getInstance();
+        calendar.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        calendar.set(java.util.Calendar.MINUTE, 59);
+        calendar.set(java.util.Calendar.SECOND, 59);
+        calendar.set(java.util.Calendar.MILLISECOND, 999);
+        return calendar.getTimeInMillis();
+    }
+
     private void updateSmartListVisibility() {
         View drawerView = binding.customDrawer;
         
@@ -172,7 +235,6 @@ public class MainActivity extends AppCompatActivity {
         
         // Main Lists
         drawerView.findViewById(R.id.menu_welcome).setOnClickListener(v -> handleMenuClick("Welcome"));
-        drawerView.findViewById(R.id.menu_today).setOnClickListener(v -> handleMenuClick("Today"));
         drawerView.findViewById(R.id.menu_inbox).setOnClickListener(v -> handleMenuClick("Inbox"));
         drawerView.findViewById(R.id.menu_work).setOnClickListener(v -> handleMenuClick("Work"));
         drawerView.findViewById(R.id.menu_personal).setOnClickListener(v -> handleMenuClick("Personal"));
@@ -193,6 +255,12 @@ public class MainActivity extends AppCompatActivity {
         drawerView.findViewById(R.id.customize_button).setOnClickListener(v -> {
             Intent intent = new Intent(this, SmartListSettingsActivity.class);
             startActivity(intent);
+        });
+        
+        // Add List button
+        drawerView.findViewById(R.id.menu_add_list).setOnClickListener(v -> {
+            android.widget.Toast.makeText(this, "Tính năng Thêm danh sách đang phát triển", android.widget.Toast.LENGTH_SHORT).show();
+            binding.drawerLayout.closeDrawer(GravityCompat.START);
         });
         
         updateSmartListVisibility();
@@ -243,7 +311,55 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         
+        // Update selection UI
+        updateMenuSelection(menuItem);
+        
         binding.drawerLayout.closeDrawer(GravityCompat.START);
+    }
+
+    private void updateMenuSelection(String selectedItem) {
+        this.currentSelectedMenu = selectedItem;
+        View drawerView = binding.customDrawer;
+        
+        // Clear all selections first
+        drawerView.findViewById(R.id.menu_welcome).setSelected(false);
+        drawerView.findViewById(R.id.menu_inbox).setSelected(false);
+        drawerView.findViewById(R.id.menu_work).setSelected(false);
+        drawerView.findViewById(R.id.menu_personal).setSelected(false);
+        drawerView.findViewById(R.id.menu_shopping).setSelected(false);
+        drawerView.findViewById(R.id.menu_learning).setSelected(false);
+        
+        drawerView.findViewById(R.id.smart_all).setSelected(false);
+        drawerView.findViewById(R.id.smart_today).setSelected(false);
+        drawerView.findViewById(R.id.smart_tomorrow).setSelected(false);
+        drawerView.findViewById(R.id.smart_next_7_days).setSelected(false);
+        drawerView.findViewById(R.id.smart_assigned).setSelected(false);
+        drawerView.findViewById(R.id.smart_inbox).setSelected(false);
+        drawerView.findViewById(R.id.smart_completed).setSelected(false);
+        drawerView.findViewById(R.id.smart_wont_do).setSelected(false);
+
+        // Highlight selected
+        switch (selectedItem) {
+            case "Welcome": drawerView.findViewById(R.id.menu_welcome).setSelected(true); break;
+            case "Today": 
+                drawerView.findViewById(R.id.smart_today).setSelected(true);
+                break;
+            case "Inbox": 
+                drawerView.findViewById(R.id.menu_inbox).setSelected(true); 
+                drawerView.findViewById(R.id.smart_inbox).setSelected(true);
+                break;
+            case "Work": drawerView.findViewById(R.id.menu_work).setSelected(true); break;
+            case "Personal": drawerView.findViewById(R.id.menu_personal).setSelected(true); break;
+            case "Shopping": drawerView.findViewById(R.id.menu_shopping).setSelected(true); break;
+            case "Learning": drawerView.findViewById(R.id.menu_learning).setSelected(true); break;
+            
+            case "All": drawerView.findViewById(R.id.smart_all).setSelected(true); break;
+            case "Tomorrow": drawerView.findViewById(R.id.smart_tomorrow).setSelected(true); break;
+            case "Next 7 Days": drawerView.findViewById(R.id.smart_next_7_days).setSelected(true); break;
+            case "Assigned to Me": drawerView.findViewById(R.id.smart_assigned).setSelected(true); break;
+            case "Completed": drawerView.findViewById(R.id.smart_completed).setSelected(true); break;
+            case "Won't Do": drawerView.findViewById(R.id.smart_wont_do).setSelected(true); break;
+        }
     }
 
     private void showAddTaskDialog() {

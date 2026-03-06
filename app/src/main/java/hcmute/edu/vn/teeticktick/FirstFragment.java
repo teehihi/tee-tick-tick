@@ -26,7 +26,6 @@ public class FirstFragment extends Fragment {
     private TaskGroup keyFeaturesGroup;
     private TaskGroup exploreMoreGroup;
     private TaskViewModel taskViewModel;
-    private String currentFilter = "Welcome";
 
     @Override
     public View onCreateView(
@@ -48,7 +47,21 @@ public class FirstFragment extends Fragment {
         binding.recyclerviewTasks.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerviewTasks.setAdapter(adapter);
         
-        observeTasks();
+        // Restore previous filter instead of relying on default call
+        String filter = taskViewModel.getCurrentFilter();
+        
+        // Re-apply the filter
+        switch (filter) {
+            case "Today": filterByToday(); break;
+            case "Tomorrow": filterByTomorrow(); break;
+            case "Next 7 Days": filterByNext7Days(); break;
+            case "Inbox": filterByInbox(); break;
+            case "All": filterByAll(); break;
+            case "Assigned to Me": filterByAssignedToMe(); break;
+            case "Completed": filterByCompleted(); break;
+            case "Won't Do": filterByWontDo(); break;
+            default: filterByList(filter); break;
+        }
     }
 
     private void setupInitialData() {
@@ -74,36 +87,7 @@ public class FirstFragment extends Fragment {
         items.addAll(exploreMoreGroup.getTasks());
     }
 
-    private void observeTasks() {
-        taskViewModel.getTasksByList("Welcome").observe(getViewLifecycleOwner(), taskEntities -> {
-            if (taskEntities != null) {
-                android.util.Log.d("DATABASE", "Tasks loaded: " + taskEntities.size());
-                
-                // Clear existing tasks from Getting Started group
-                int groupIndex = items.indexOf(gettingStartedGroup);
-                if (groupIndex != -1) {
-                    // Remove old tasks
-                    int tasksToRemove = gettingStartedGroup.getTasks().size();
-                    for (int i = 0; i < tasksToRemove; i++) {
-                        items.remove(groupIndex + 1);
-                    }
-                    gettingStartedGroup.getTasks().clear();
-                    
-                    // Add new tasks from database
-                    for (TaskEntity entity : taskEntities) {
-                        android.util.Log.d("DATABASE", "Task: " + entity.getTitle() + " | List: " + entity.getListName());
-                        Task task = new Task(entity.getEmoji(), entity.getTitle());
-                        task.setCompleted(entity.isCompleted());
-                        gettingStartedGroup.addTask(task);
-                    }
-                    
-                    // Insert tasks into items list
-                    items.addAll(groupIndex + 1, gettingStartedGroup.getTasks());
-                    adapter.notifyDataSetChanged();
-                }
-            }
-        });
-    }
+    // observeTasks() removed because we now rely on individual filter methods.
 
     public void addTask(String title, String description, String emoji, String listName, Long dueDate) {
         android.util.Log.d("DATABASE", "Adding task: " + title + " | Emoji: " + emoji + " | List: " + listName);
@@ -121,7 +105,7 @@ public class FirstFragment extends Fragment {
     }
 
     public void filterByToday() {
-        currentFilter = "Today";
+        taskViewModel.setCurrentFilter("Today");
         hideWelcomeGroups();
         updateTitle(getString(R.string.list_today));
         long startOfDay = getStartOfDay();
@@ -130,7 +114,7 @@ public class FirstFragment extends Fragment {
     }
 
     public void filterByTomorrow() {
-        currentFilter = "Tomorrow";
+        taskViewModel.setCurrentFilter("Tomorrow");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_tomorrow));
         long startOfTomorrow = getStartOfDay() + (24 * 60 * 60 * 1000L);
@@ -139,7 +123,7 @@ public class FirstFragment extends Fragment {
     }
 
     public void filterByNext7Days() {
-        currentFilter = "Next 7 Days";
+        taskViewModel.setCurrentFilter("Next 7 Days");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_next_7_days));
         long startOfDay = getStartOfDay();
@@ -148,21 +132,21 @@ public class FirstFragment extends Fragment {
     }
 
     public void filterByInbox() {
-        currentFilter = "Inbox";
+        taskViewModel.setCurrentFilter("Inbox");
         hideWelcomeGroups();
         updateTitle(getString(R.string.list_inbox));
         taskViewModel.getIncompleteTasks().observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
 
     public void filterByAll() {
-        currentFilter = "All";
+        taskViewModel.setCurrentFilter("All");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_all));
         taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
 
     public void filterByList(String listName) {
-        currentFilter = listName;
+        taskViewModel.setCurrentFilter(listName);
         if (listName.equals("Welcome")) {
             showWelcomeGroups();
             updateTitle("👋 " + getString(R.string.welcome));
@@ -195,21 +179,21 @@ public class FirstFragment extends Fragment {
     }
     
     public void filterByAssignedToMe() {
-        currentFilter = "Assigned to Me";
+        taskViewModel.setCurrentFilter("Assigned to Me");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_assigned_to_me));
         taskViewModel.getTasksByList("Assigned to Me").observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
     
     public void filterByCompleted() {
-        currentFilter = "Completed";
+        taskViewModel.setCurrentFilter("Completed");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_completed));
         taskViewModel.getCompletedTasks().observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
     
     public void filterByWontDo() {
-        currentFilter = "Won't Do";
+        taskViewModel.setCurrentFilter("Won't Do");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_wont_do));
         taskViewModel.getTasksByList("Won't Do").observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
@@ -347,6 +331,7 @@ public class FirstFragment extends Fragment {
     public void onResume() {
         super.onResume();
         // Restore title based on current filter
+        String currentFilter = taskViewModel.getCurrentFilter();
         if (currentFilter.equals("Welcome")) {
             updateTitle("👋 " + getString(R.string.welcome));
         } else {

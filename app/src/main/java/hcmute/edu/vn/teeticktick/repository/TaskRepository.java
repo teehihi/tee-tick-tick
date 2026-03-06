@@ -58,4 +58,16 @@ public class TaskRepository {
     public void deleteCompletedTasks() {
         executorService.execute(() -> taskDao.deleteCompletedTasks());
     }
+
+    public LiveData<Integer> getActiveTaskCountByList(String listName) {
+        return taskDao.getActiveTaskCountByList(listName);
+    }
+    
+    public LiveData<Integer> getActiveIncompleteTaskCount() {
+        return taskDao.getActiveIncompleteTaskCount();
+    }
+    
+    public LiveData<Integer> getActiveTaskCountByDateRange(long startDate, long endDate) {
+        return taskDao.getActiveTaskCountByDateRange(startDate, endDate);
+    }
 }

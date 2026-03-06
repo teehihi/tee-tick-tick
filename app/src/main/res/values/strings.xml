@@ -60,6 +60,7 @@
     <string name="main_lists">DANH SÁCH CHÍNH</string>
     <string name="smart_lists">DANH SÁCH THÔNG MINH</string>
     <string name="customize">⚙ Tùy chỉnh</string>
+    <string name="add_list">+ Thêm danh sách</string>
     <string name="list_today">Hôm nay</string>
     <string name="list_inbox">Hộp thư</string>
     <string name="list_work">Công việc</string>
