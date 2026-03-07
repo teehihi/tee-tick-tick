@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,10 +23,11 @@ import java.util.Locale;
 public class AddTaskBottomSheet extends BottomSheetDialogFragment {
 
     private EditText taskTitleInput;
+    private EditText taskDescriptionInput;
     private TextView emojiSelector;
     private TextView priorityLow, priorityMedium, priorityHigh;
     private TextView dateToday, dateTomorrow, dateThisWeek, datePick;
-    private TextView categoryPersonal, categoryWork, categoryShopping;
+    private TextView selectCategoryButton;
     private Button addTaskButton;
     private ImageView closeButton;
     
@@ -59,7 +61,8 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         // Set default selections
         selectPriority(priorityMedium, 1);
         selectDate(dateToday, getTodayTimestamp());
-        selectCategory(categoryPersonal, "Personal");
+        selectedCategory = "Personal";
+        selectCategoryButton.setText(selectedCategory);
         
         taskTitleInput.requestFocus();
     }
@@ -78,9 +81,8 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         dateThisWeek = view.findViewById(R.id.date_this_week);
         datePick = view.findViewById(R.id.date_pick);
         
-        categoryPersonal = view.findViewById(R.id.category_personal);
-        categoryWork = view.findViewById(R.id.category_work);
-        categoryShopping = view.findViewById(R.id.category_shopping);
+        selectCategoryButton = view.findViewById(R.id.select_category_button);
+        taskDescriptionInput = view.findViewById(R.id.task_description_input);
         
         addTaskButton = view.findViewById(R.id.add_task_button);
     }
@@ -109,17 +111,26 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         dateThisWeek.setOnClickListener(v -> selectDate(dateThisWeek, getThisWeekTimestamp()));
         datePick.setOnClickListener(v -> showDatePicker());
         
-        // Category buttons
-        categoryPersonal.setOnClickListener(v -> selectCategory(categoryPersonal, "Personal"));
-        categoryWork.setOnClickListener(v -> selectCategory(categoryWork, "Work"));
-        categoryShopping.setOnClickListener(v -> selectCategory(categoryShopping, "Shopping"));
+        // Category button
+        selectCategoryButton.setOnClickListener(v -> {
+            hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet listPicker = new hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet();
+            listPicker.setSelectedList(selectedCategory);
+            listPicker.setOnListSelectedListener(list -> {
+                selectedCategory = list.getName();
+                selectCategoryButton.setText(list.getDisplayName());
+            });
+            listPicker.show(getParentFragmentManager(), "ListPicker");
+        });
         
         // Add task button
         addTaskButton.setOnClickListener(v -> {
             String title = taskTitleInput.getText().toString().trim();
+            String description = taskDescriptionInput.getText().toString().trim();
             if (!title.isEmpty() && listener != null) {
-                listener.onTaskAdded(title, "", selectedEmoji, selectedCategory, selectedDueDate);
+                listener.onTaskAdded(title, description, selectedEmoji, selectedCategory, selectedDueDate);
                 dismiss();
+            } else if (title.isEmpty()) {
+                Toast.makeText(getContext(), "Vui lòng nhập tiêu đề", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -156,20 +167,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         selected.setTextColor(getResources().getColor(R.color.white, null));
     }
 
-    private void selectCategory(TextView selected, String category) {
-        categoryPersonal.setSelected(false);
-        categoryWork.setSelected(false);
-        categoryShopping.setSelected(false);
-        
-        selected.setSelected(true);
-        selectedCategory = category;
-        
-        // Update text colors
-        categoryPersonal.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        categoryWork.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        categoryShopping.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        selected.setTextColor(getResources().getColor(R.color.white, null));
-    }
+
 
     private void showDatePicker() {
         Calendar calendar = Calendar.getInstance();

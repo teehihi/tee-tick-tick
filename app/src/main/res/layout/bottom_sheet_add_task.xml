@@ -22,7 +22,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="New Task"
+            android:text="Nhiệm vụ mới"
             android:textColor="@color/text_primary"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -46,7 +46,7 @@
         android:layout_marginBottom="24dp">
 
         <!-- Emoji Selector Button -->
-        <TextView
+        <com.vanniktech.emoji.EmojiTextView
             android:id="@+id/emoji_selector"
             android:layout_width="56dp"
             android:layout_height="56dp"
@@ -54,24 +54,53 @@
             android:textSize="28sp"
             android:gravity="center"
             android:background="@drawable/bg_input_field"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="12dp"
             android:clickable="true"
             android:focusable="true" />
 
-        <!-- Task Input -->
-        <EditText
-            android:id="@+id/task_title_input"
+        <!-- Task Input layout containing Title and Description -->
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="56dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@drawable/bg_input_field"
-            android:hint="What do you need to do?"
-            android:textColorHint="@color/text_secondary"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:inputType="textCapSentences" />
+            android:orientation="vertical"
+            android:background="@drawable/bg_input_field">
+
+            <EditText
+                android:id="@+id/task_title_input"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="@null"
+                android:hint="Bạn cần làm gì?"
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:inputType="textCapSentences" />
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="#E0E0E0" />
+
+            <EditText
+                android:id="@+id/task_description_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
+                android:background="@null"
+                android:hint="Thêm mô tả chi tiết..."
+                android:textColorHint="@color/text_secondary"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:padding="16dp"
+                android:inputType="textMultiLine|textCapSentences"
+                android:gravity="top|start" />
+        </LinearLayout>
     </LinearLayout>
 
     <!-- Priority Section -->
@@ -98,7 +127,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Priority"
+                android:text="Độ ưu tiên"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -115,7 +144,7 @@
                 android:layout_width="0dp"
                 android:layout_height="44dp"
                 android:layout_weight="1"
-                android:text="Low"
+                android:text="Thấp"
                 android:textColor="@color/text_secondary"
                 android:textSize="15sp"
                 android:gravity="center"
@@ -129,7 +158,7 @@
                 android:layout_width="0dp"
                 android:layout_height="44dp"
                 android:layout_weight="1"
-                android:text="Medium"
+                android:text="Trung bình"
                 android:textColor="@color/white"
                 android:textSize="15sp"
                 android:textStyle="bold"
@@ -144,7 +173,7 @@
                 android:layout_width="0dp"
                 android:layout_height="44dp"
                 android:layout_weight="1"
-                android:text="High"
+                android:text="Cao"
                 android:textColor="@color/text_secondary"
                 android:textSize="15sp"
                 android:gravity="center"
@@ -178,7 +207,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Due Date"
+                android:text="Ngày đến hạn"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
@@ -199,7 +228,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="44dp"
                     android:minWidth="100dp"
-                    android:text="Today"
+                    android:text="Hôm nay"
                     android:textColor="@color/white"
                     android:textSize="15sp"
                     android:textStyle="bold"
@@ -216,7 +245,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="44dp"
                     android:minWidth="100dp"
-                    android:text="Tomorrow"
+                    android:text="Ngày mai"
                     android:textColor="@color/text_secondary"
                     android:textSize="15sp"
                     android:gravity="center"
@@ -232,7 +261,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="44dp"
                     android:minWidth="100dp"
-                    android:text="This Week"
+                    android:text="Tuần này"
                     android:textColor="@color/text_secondary"
                     android:textSize="15sp"
                     android:gravity="center"
@@ -248,7 +277,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="44dp"
                     android:minWidth="100dp"
-                    android:text="Pick Date"
+                    android:text="Chọn ngày"
                     android:textColor="@color/text_secondary"
                     android:textSize="15sp"
                     android:gravity="center"
@@ -285,71 +314,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Category"
+                android:text="Danh mục"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <HorizontalScrollView
+        <TextView
+            android:id="@+id/select_category_button"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none">
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/category_personal"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="100dp"
-                    android:text="Personal"
-                    android:textColor="@color/white"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:gravity="center"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/category_work"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="100dp"
-                    android:text="Work"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="15sp"
-                    android:gravity="center"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/category_shopping"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="100dp"
-                    android:text="Shopping"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="15sp"
-                    android:gravity="center"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:clickable="true"
-                    android:focusable="true" />
-            </LinearLayout>
-        </HorizontalScrollView>
+            android:layout_height="44dp"
+            android:text="Chọn danh mục"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:background="@drawable/chip_category_selector"
+            android:drawableEnd="@android:drawable/arrow_down_float"
+            android:clickable="true"
+            android:focusable="true" />
     </LinearLayout>
 
     <!-- Add Task Button -->
@@ -357,7 +342,7 @@
         android:id="@+id/add_task_button"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="Add Task"
+        android:text="Thêm nhiệm vụ"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"

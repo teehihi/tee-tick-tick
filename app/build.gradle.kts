@@ -54,6 +54,9 @@ dependencies {
     // Stetho - Debug Database Inspector
     debugImplementation("com.facebook.stetho:stetho:1.6.0")
     
+    // Vanniktech Emoji
+    implementation("com.vanniktech:emoji-ios:0.16.0")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

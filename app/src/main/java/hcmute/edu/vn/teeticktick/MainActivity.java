@@ -20,6 +20,8 @@ import android.widget.TextView;
 
 import hcmute.edu.vn.teeticktick.databinding.ActivityMainBinding;
 import hcmute.edu.vn.teeticktick.viewmodel.TaskViewModel;
+import hcmute.edu.vn.teeticktick.viewmodel.CategoryViewModel;
+import hcmute.edu.vn.teeticktick.database.CategoryEntity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private SharedPreferences prefs;
     private String currentSelectedMenu = "Welcome";
+    private CategoryViewModel categoryViewModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
         binding.fab.setOnClickListener(view -> showAddTaskDialog());
         
         TaskViewModel taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
         setupCountObservers(taskViewModel);
     }
 
@@ -259,8 +263,14 @@ public class MainActivity extends AppCompatActivity {
         
         // Add List button
         drawerView.findViewById(R.id.menu_add_list).setOnClickListener(v -> {
-            android.widget.Toast.makeText(this, "Tính năng Thêm danh sách đang phát triển", android.widget.Toast.LENGTH_SHORT).show();
+            hcmute.edu.vn.teeticktick.bottomsheet.AddListBottomSheet addListBottomSheet = new hcmute.edu.vn.teeticktick.bottomsheet.AddListBottomSheet();
+            addListBottomSheet.setOnListAddedListener((listName, emoji) -> {
+                CategoryEntity newCategory = new CategoryEntity(listName, emoji, null);
+                categoryViewModel.insert(newCategory);
+                android.widget.Toast.makeText(this, "Đã thêm danh sách " + listName, android.widget.Toast.LENGTH_SHORT).show();
+            });
             binding.drawerLayout.closeDrawer(GravityCompat.START);
+            addListBottomSheet.show(getSupportFragmentManager(), "AddListBottomSheet");
         });
         
         updateSmartListVisibility();

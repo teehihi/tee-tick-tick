@@ -8,12 +8,11 @@
     android:paddingVertical="14dp"
     android:background="?attr/selectableItemBackground">
 
-    <TextView
+    <ImageView
         android:id="@+id/list_emoji"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="👋"
-        android:textSize="22sp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:src="@drawable/ic_ios_inbox"
         android:layout_marginEnd="12dp" />
 
     <TextView

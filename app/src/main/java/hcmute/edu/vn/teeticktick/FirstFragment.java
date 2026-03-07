@@ -132,24 +132,28 @@ public class FirstFragment extends Fragment {
     // observeTasks() removed because we now rely on individual filter methods.
 
     public void addTask(String title, String description, String emoji, String listName, Long dueDate) {
-        // Lưu task vào list hiện tại đang được chọn, không phải list từ bottom sheet
-        String currentList = taskViewModel.getCurrentFilter();
+        String targetList = listName;
         
-        // Nếu đang ở smart list (Today, Tomorrow, etc.), lưu vào Inbox
-        if (currentList.equals("Today") || currentList.equals("Tomorrow") || 
-            currentList.equals("Next 7 Days") || currentList.equals("All") || 
-            currentList.equals("Assigned to Me") || currentList.equals("Completed") || 
-            currentList.equals("Won't Do") || currentList.equals("Welcome")) {
-            currentList = "Inbox";
+        // Nếu không có listName nào được cung cấp, sử dụng list hiện tại
+        if (targetList == null || targetList.isEmpty()) {
+            targetList = taskViewModel.getCurrentFilter();
+            
+            // Nếu đang ở smart list (Today, Tomorrow, etc.), lưu vào Inbox
+            if (targetList.equals("Today") || targetList.equals("Tomorrow") || 
+                targetList.equals("Next 7 Days") || targetList.equals("All") || 
+                targetList.equals("Assigned to Me") || targetList.equals("Completed") || 
+                targetList.equals("Won't Do") || targetList.equals("Welcome")) {
+                targetList = "Inbox";
+            }
         }
         
-        android.util.Log.d("DATABASE", "Adding task: " + title + " | Emoji: " + emoji + " | List: " + currentList);
+        android.util.Log.d("DATABASE", "Adding task: " + title + " | Emoji: " + emoji + " | List: " + targetList);
         TaskEntity taskEntity = new TaskEntity(
             title,
             description,
             emoji,
             false,
-            currentList,
+            targetList,
             0,
             System.currentTimeMillis(),
             dueDate

@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import hcmute.edu.vn.teeticktick.R;
 import hcmute.edu.vn.teeticktick.model.TaskList;
+import hcmute.edu.vn.teeticktick.utils.IconHelper;
 
 public class ListPickerAdapter extends RecyclerView.Adapter<ListPickerAdapter.ViewHolder> {
 
@@ -41,13 +43,22 @@ public class ListPickerAdapter extends RecyclerView.Adapter<ListPickerAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TaskList list = lists.get(position);
-        holder.emoji.setText(list.getEmoji());
-        holder.name.setText(list.getDisplayName());
+        // Set icon
+        holder.listIcon.setImageResource(IconHelper.getIconDrawable(list.getEmoji()));
+        holder.listName.setText(list.getDisplayName());
         
-        // Compare using key instead of display name
+        // Check if selected
         boolean isSelected = list.getKey().equals(selectedList);
-        holder.checkIcon.setVisibility(isSelected ? View.VISIBLE : View.GONE);
-
+        if (isSelected) {
+            holder.checkIcon.setVisibility(View.VISIBLE);
+            holder.listName.setTextColor(holder.itemView.getContext().getResources().getColor(android.R.color.white));
+            holder.listIcon.setColorFilter(holder.itemView.getContext().getResources().getColor(android.R.color.white));
+        } else {
+            holder.checkIcon.setVisibility(View.GONE);
+            holder.listName.setTextColor(holder.itemView.getContext().getResources().getColor(R.color.text_secondary));
+            holder.listIcon.setColorFilter(IconHelper.getIconColor(list.getEmoji()));
+        }
+        
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onListSelected(list);
@@ -60,15 +71,20 @@ public class ListPickerAdapter extends RecyclerView.Adapter<ListPickerAdapter.Vi
         return lists.size();
     }
 
+    public void updateData(List<TaskList> newLists) {
+        this.lists = newLists;
+        notifyDataSetChanged();
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView emoji;
-        TextView name;
+        ImageView listIcon;
+        TextView listName;
         ImageView checkIcon;
 
         ViewHolder(View itemView) {
             super(itemView);
-            emoji = itemView.findViewById(R.id.list_emoji);
-            name = itemView.findViewById(R.id.list_name);
+            listIcon = itemView.findViewById(R.id.list_emoji);
+            listName = itemView.findViewById(R.id.list_name);
             checkIcon = itemView.findViewById(R.id.check_icon);
         }
     }
