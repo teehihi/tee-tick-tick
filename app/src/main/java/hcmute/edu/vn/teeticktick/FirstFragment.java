@@ -7,7 +7,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.ArrayList;
@@ -167,7 +169,9 @@ public class FirstFragment extends Fragment {
         updateTitle(getString(R.string.list_today));
         long startOfDay = getStartOfDay();
         long endOfDay = getEndOfDay();
-        taskViewModel.getTasksByDateRange(startOfDay, endOfDay).observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getTasksByDateRange(startOfDay, endOfDay);
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
 
     public void filterByTomorrow() {
@@ -176,7 +180,9 @@ public class FirstFragment extends Fragment {
         updateTitle(getString(R.string.smart_list_tomorrow));
         long startOfTomorrow = getStartOfDay() + (24 * 60 * 60 * 1000L);
         long endOfTomorrow = getEndOfDay() + (24 * 60 * 60 * 1000L);
-        taskViewModel.getTasksByDateRange(startOfTomorrow, endOfTomorrow).observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getTasksByDateRange(startOfTomorrow, endOfTomorrow);
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
 
     public void filterByNext7Days() {
@@ -185,21 +191,27 @@ public class FirstFragment extends Fragment {
         updateTitle(getString(R.string.smart_list_next_7_days));
         long startOfDay = getStartOfDay();
         long endOf7Days = startOfDay + (7 * 24 * 60 * 60 * 1000L);
-        taskViewModel.getTasksByDateRange(startOfDay, endOf7Days).observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getTasksByDateRange(startOfDay, endOf7Days);
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
 
     public void filterByInbox() {
         taskViewModel.setCurrentFilter("Inbox");
         hideWelcomeGroups();
         updateTitle(getString(R.string.list_inbox));
-        taskViewModel.getIncompleteTasks().observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getIncompleteTasks();
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
 
     public void filterByAll() {
         taskViewModel.setCurrentFilter("All");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_all));
-        taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getAllTasks();
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
 
     public void filterByList(String listName) {
@@ -213,7 +225,9 @@ public class FirstFragment extends Fragment {
             String displayName = getLocalizedListName(listName);
             updateTitle(displayName);
         }
-        taskViewModel.getTasksByList(listName).observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getTasksByList(listName);
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
     
     private String getLocalizedListName(String key) {
@@ -239,21 +253,27 @@ public class FirstFragment extends Fragment {
         taskViewModel.setCurrentFilter("Assigned to Me");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_assigned_to_me));
-        taskViewModel.getTasksByList("Assigned to Me").observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getTasksByList("Assigned to Me");
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
     
     public void filterByCompleted() {
         taskViewModel.setCurrentFilter("Completed");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_completed));
-        taskViewModel.getCompletedTasks().observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getCompletedTasks();
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
     
     public void filterByWontDo() {
         taskViewModel.setCurrentFilter("Won't Do");
         hideWelcomeGroups();
         updateTitle(getString(R.string.smart_list_wont_do));
-        taskViewModel.getTasksByList("Won't Do").observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
+        LiveData<List<TaskEntity>> liveData = taskViewModel.getTasksByList("Won't Do");
+        liveData.removeObservers(getViewLifecycleOwner());
+        liveData.observe(getViewLifecycleOwner(), this::updateTasksFromDatabase);
     }
     
     private void updateTitle(String title) {
@@ -398,29 +418,10 @@ public class FirstFragment extends Fragment {
     }
     
     private void showTaskDetailDialog(Task task) {
-        // Lấy TaskEntity từ database để có đầy đủ thông tin
-        taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), taskEntities -> {
-            if (taskEntities != null) {
-                for (TaskEntity entity : taskEntities) {
-                    if (entity.getId() == task.getId()) {
-                        TaskDetailBottomSheet bottomSheet = new TaskDetailBottomSheet();
-                        bottomSheet.setTaskEntity(entity);
-                        
-                        bottomSheet.setOnTaskUpdateListener(updatedTask -> {
-                            taskViewModel.update(updatedTask);
-                            android.util.Log.d("DATABASE", "Updated task: " + updatedTask.getTitle());
-                        });
-                        
-                        bottomSheet.setOnTaskDeleteListener(taskToDelete -> {
-                            taskViewModel.delete(taskToDelete);
-                            android.util.Log.d("DATABASE", "Deleted task: " + taskToDelete.getTitle());
-                        });
-                        
-                        bottomSheet.show(getParentFragmentManager(), "TaskDetailBottomSheet");
-                        break;
-                    }
-                }
-            }
-        });
+        // Navigate to TaskDetailFragment
+        Bundle bundle = new Bundle();
+        bundle.putInt("taskId", task.getId());
+        NavHostFragment.findNavController(FirstFragment.this)
+            .navigate(R.id.TaskDetailFragment, bundle);
     }
 }

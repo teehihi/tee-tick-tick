@@ -9,6 +9,7 @@ import android.widget.CalendarView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.text.SimpleDateFormat;
@@ -190,18 +191,11 @@ public class SecondFragment extends Fragment {
     }
     
     private void showTaskDetailDialog(TaskEntity task) {
-        TaskDetailBottomSheet bottomSheet = new TaskDetailBottomSheet();
-        bottomSheet.setTaskEntity(task);
-        
-        bottomSheet.setOnTaskUpdateListener(updatedTask -> {
-            taskViewModel.update(updatedTask);
-        });
-        
-        bottomSheet.setOnTaskDeleteListener(taskToDelete -> {
-            taskViewModel.delete(taskToDelete);
-        });
-        
-        bottomSheet.show(getParentFragmentManager(), "TaskDetailBottomSheet");
+        // Navigate to TaskDetailFragment
+        Bundle bundle = new Bundle();
+        bundle.putInt("taskId", task.getId());
+        NavHostFragment.findNavController(SecondFragment.this)
+            .navigate(R.id.TaskDetailFragment, bundle);
     }
 
     @Override

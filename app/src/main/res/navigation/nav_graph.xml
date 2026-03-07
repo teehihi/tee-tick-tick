@@ -34,6 +34,12 @@
         tools:layout="@layout/fragment_timeline" />
     
     <fragment
+        android:id="@+id/TaskDetailFragment"
+        android:name="hcmute.edu.vn.teeticktick.TaskDetailFragment"
+        android:label="Chi tiết nhiệm vụ"
+        tools:layout="@layout/fragment_task_detail" />
+    
+    <fragment
         android:id="@+id/SettingsFragment"
         android:name="hcmute.edu.vn.teeticktick.SettingsFragment"
         android:label="@string/settings"
