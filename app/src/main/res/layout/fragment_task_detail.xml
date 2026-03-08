@@ -15,317 +15,344 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp">
 
-            <!-- Task Title Card -->
-            <androidx.cardview.widget.CardView
+            <!-- Emoji + Task Input Row -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                android:orientation="horizontal"
+                android:gravity="top"
+                android:layout_marginBottom="24dp">
+
+                <!-- Emoji Selector Button -->
+                <com.vanniktech.emoji.EmojiTextView
+                    android:id="@+id/emoji_selector"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:text="✅"
+                    android:textSize="28sp"
+                    android:gravity="center"
+                    android:background="@drawable/bg_input_field"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <!-- Task Input layout containing Title and Description -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="@drawable/bg_input_field">
+
+                    <EditText
+                        android:id="@+id/task_title_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="@null"
+                        android:hint="Bạn cần làm gì?"
+                        android:textColorHint="@color/text_secondary"
+                        android:textColor="@color/text_primary"
+                        android:textSize="16sp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:inputType="textCapSentences" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="16dp"
+                        android:background="#E0E0E0" />
+
+                    <EditText
+                        android:id="@+id/task_description_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="56dp"
+                        android:background="@null"
+                        android:hint="Thêm mô tả chi tiết..."
+                        android:textColorHint="@color/text_secondary"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:padding="16dp"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:gravity="top|start" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Priority Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp"
                     android:gravity="center_vertical"
-                    android:background="@color/card_bg">
+                    android:layout_marginBottom="12dp">
 
-                    <TextView
-                        android:id="@+id/emoji_selector"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:gravity="center"
-                        android:text="✅"
-                        android:textSize="28sp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:layout_marginEnd="12dp" />
-
-                    <EditText
-                        android:id="@+id/task_title_input"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:background="@android:color/transparent"
-                        android:hint="Tiêu đề nhiệm vụ"
-                        android:textColor="@color/text_primary"
-                        android:textColorHint="@color/text_secondary"
-                        android:textSize="17sp"
-                        android:textStyle="bold"
-                        android:maxLines="3"
-                        android:inputType="textCapSentences|textMultiLine" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Priority Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:background="@color/card_bg">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/btn_star"
+                        app:tint="@color/text_secondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
                         android:text="Độ ưu tiên"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/priority_low"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/chip_priority_selector"
-                            android:gravity="center"
-                            android:text="Thấp"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp"
-                            android:clickable="true"
-                            android:focusable="true" />
-
-                        <TextView
-                            android:id="@+id/priority_medium"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/chip_priority_selector"
-                            android:gravity="center"
-                            android:text="Trung bình"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp"
-                            android:clickable="true"
-                            android:focusable="true" />
-
-                        <TextView
-                            android:id="@+id/priority_high"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/chip_priority_selector"
-                            android:gravity="center"
-                            android:text="Cao"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="14sp"
-                            android:clickable="true"
-                            android:focusable="true" />
-                    </LinearLayout>
+                        android:textStyle="bold" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Due Date Card -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:background="@color/card_bg">
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/priority_low"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="Thấp"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="15sp"
+                        android:gravity="center"
+                        android:background="@drawable/chip_priority_selector"
+                        android:layout_marginEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/priority_medium"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="Trung bình"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="15sp"
+                        android:gravity="center"
+                        android:background="@drawable/chip_priority_selector"
+                        android:layout_marginEnd="8dp"
+                        android:clickable="true"
+                        android:focusable="true" />
+
+                    <TextView
+                        android:id="@+id/priority_high"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="Cao"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="15sp"
+                        android:gravity="center"
+                        android:background="@drawable/chip_priority_selector"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Due Date Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="24dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_menu_my_calendar"
+                        app:tint="@color/text_secondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hạn chót"
+                        android:layout_marginStart="8dp"
+                        android:text="Ngày đến hạn"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/date_today"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:background="@drawable/chip_category_selector"
-                            android:gravity="center"
+                            android:minWidth="100dp"
                             android:text="Hôm nay"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:paddingStart="20dp"
+                            android:paddingEnd="20dp"
+                            android:background="@drawable/chip_category_selector"
+                            android:layout_marginEnd="8dp"
                             android:clickable="true"
                             android:focusable="true" />
 
                         <TextView
                             android:id="@+id/date_tomorrow"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:background="@drawable/chip_category_selector"
-                            android:gravity="center"
+                            android:minWidth="100dp"
                             android:text="Ngày mai"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:paddingStart="20dp"
+                            android:paddingEnd="20dp"
+                            android:background="@drawable/chip_category_selector"
+                            android:layout_marginEnd="8dp"
                             android:clickable="true"
                             android:focusable="true" />
 
                         <TextView
                             android:id="@+id/date_this_week"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:background="@drawable/chip_category_selector"
-                            android:gravity="center"
+                            android:minWidth="100dp"
                             android:text="Tuần này"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:paddingStart="20dp"
+                            android:paddingEnd="20dp"
+                            android:background="@drawable/chip_category_selector"
+                            android:layout_marginEnd="8dp"
                             android:clickable="true"
                             android:focusable="true" />
 
                         <TextView
                             android:id="@+id/date_pick"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/chip_category_selector"
-                            android:gravity="center"
-                            android:text="Chọn"
+                            android:minWidth="100dp"
+                            android:text="Chọn ngày"
                             android:textColor="@color/text_secondary"
-                            android:textSize="12sp"
+                            android:textSize="15sp"
+                            android:gravity="center"
+                            android:paddingStart="20dp"
+                            android:paddingEnd="20dp"
+                            android:background="@drawable/chip_category_selector"
                             android:clickable="true"
                             android:focusable="true" />
                     </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+                </HorizontalScrollView>
+            </LinearLayout>
 
-            <!-- Category Card -->
-            <androidx.cardview.widget.CardView
+            <!-- Category Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp">
+                android:orientation="vertical"
+                android:layout_marginBottom="40dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:background="@color/card_bg">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@android:drawable/ic_menu_agenda"
+                        app:tint="@color/text_secondary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Danh sách"
+                        android:layout_marginStart="8dp"
+                        android:text="Danh mục"
                         android:textColor="@color/text_primary"
                         android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/category_personal"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/chip_category_selector"
-                            android:gravity="center"
-                            android:text="Cá nhân"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp"
-                            android:clickable="true"
-                            android:focusable="true" />
-
-                        <TextView
-                            android:id="@+id/category_work"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="8dp"
-                            android:background="@drawable/chip_category_selector"
-                            android:gravity="center"
-                            android:text="Công việc"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp"
-                            android:clickable="true"
-                            android:focusable="true" />
-
-                        <TextView
-                            android:id="@+id/category_shopping"
-                            android:layout_width="0dp"
-                            android:layout_height="44dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/chip_category_selector"
-                            android:gravity="center"
-                            android:text="Mua sắm"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp"
-                            android:clickable="true"
-                            android:focusable="true" />
-                    </LinearLayout>
+                        android:textStyle="bold" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+
+                <TextView
+                    android:id="@+id/select_category_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="Chọn danh mục"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:background="@drawable/chip_category_selector"
+                    android:drawableEnd="@android:drawable/arrow_down_float"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
 
             <!-- Action Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="24dp">
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/delete_task_button"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="56dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="10dp"
                     android:background="@drawable/bg_input_field"
+                    app:backgroundTint="@null"
                     android:text="Xóa"
                     android:textColor="#E53935"
                     android:textSize="16sp"
                     android:textStyle="bold"
-                    android:textAllCaps="false" />
+                    android:textAllCaps="false"
+                    android:elevation="0dp"
+                    android:stateListAnimator="@null" />
 
                 <Button
                     android:id="@+id/update_task_button"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
-                    android:layout_weight="1"
+                    android:layout_height="56dp"
+                    android:layout_weight="2"
                     android:text="Cập nhật"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/white"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     android:textAllCaps="false"
-                    android:backgroundTint="#2ECC71" />
+                    android:background="@drawable/bg_button_green"
+                    app:backgroundTint="@null"
+                    android:elevation="0dp"
+                    android:stateListAnimator="@null" />
             </LinearLayout>
 
         </LinearLayout>

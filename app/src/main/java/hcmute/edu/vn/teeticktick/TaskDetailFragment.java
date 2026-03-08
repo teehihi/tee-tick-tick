@@ -100,13 +100,11 @@ public class TaskDetailFragment extends Fragment {
         }
         
         selectedCategory = taskEntity.getListName();
-        TextView categoryView = binding.categoryPersonal;
-        if ("Work".equals(selectedCategory)) {
-            categoryView = binding.categoryWork;
-        } else if ("Shopping".equals(selectedCategory)) {
-            categoryView = binding.categoryShopping;
+        binding.selectCategoryButton.setText(selectedCategory);
+        
+        if (taskEntity.getDescription() != null) {
+            binding.taskDescriptionInput.setText(taskEntity.getDescription());
         }
-        selectCategory(categoryView, selectedCategory);
     }
 
     private void setupClickListeners() {
@@ -129,9 +127,15 @@ public class TaskDetailFragment extends Fragment {
         binding.dateThisWeek.setOnClickListener(v -> selectDate(binding.dateThisWeek, getThisWeekTimestamp()));
         binding.datePick.setOnClickListener(v -> showDatePicker());
         
-        binding.categoryPersonal.setOnClickListener(v -> selectCategory(binding.categoryPersonal, "Personal"));
-        binding.categoryWork.setOnClickListener(v -> selectCategory(binding.categoryWork, "Work"));
-        binding.categoryShopping.setOnClickListener(v -> selectCategory(binding.categoryShopping, "Shopping"));
+        binding.selectCategoryButton.setOnClickListener(v -> {
+            hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet listPicker = new hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet();
+            listPicker.setSelectedList(selectedCategory);
+            listPicker.setOnListSelectedListener(list -> {
+                selectedCategory = list.getName();
+                binding.selectCategoryButton.setText(list.getDisplayName());
+            });
+            listPicker.show(getParentFragmentManager(), "ListPicker");
+        });
         
         binding.updateTaskButton.setOnClickListener(v -> updateTask());
         binding.deleteTaskButton.setOnClickListener(v -> deleteTask());
@@ -167,19 +171,7 @@ public class TaskDetailFragment extends Fragment {
         selected.setTextColor(getResources().getColor(R.color.white, null));
     }
 
-    private void selectCategory(TextView selected, String category) {
-        binding.categoryPersonal.setSelected(false);
-        binding.categoryWork.setSelected(false);
-        binding.categoryShopping.setSelected(false);
-        
-        selected.setSelected(true);
-        selectedCategory = category;
-        
-        binding.categoryPersonal.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        binding.categoryWork.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        binding.categoryShopping.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        selected.setTextColor(getResources().getColor(R.color.white, null));
-    }
+
 
     private void showDatePicker() {
         Calendar calendar = Calendar.getInstance();
@@ -206,8 +198,10 @@ public class TaskDetailFragment extends Fragment {
 
     private void updateTask() {
         String title = binding.taskTitleInput.getText().toString().trim();
+        String description = binding.taskDescriptionInput.getText().toString().trim();
         if (!title.isEmpty() && taskEntity != null) {
             taskEntity.setTitle(title);
+            taskEntity.setDescription(description);
             taskEntity.setEmoji(selectedEmoji);
             taskEntity.setPriority(selectedPriority);
             taskEntity.setDueDate(selectedDueDate);
