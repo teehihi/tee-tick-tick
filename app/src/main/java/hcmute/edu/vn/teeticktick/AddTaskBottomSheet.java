@@ -26,7 +26,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
     private EditText taskDescriptionInput;
     private TextView emojiSelector;
     private TextView priorityLow, priorityMedium, priorityHigh;
-    private TextView dateToday, dateTomorrow, dateThisWeek, datePick;
+    private TextView dateToday, dateTomorrow, dateThisWeek, datePick, timePick;
     private TextView selectCategoryButton;
     private Button addTaskButton;
     private ImageView closeButton;
@@ -60,9 +60,8 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         
         // Set default selections
         selectPriority(priorityMedium, 1);
-        selectDate(dateToday, getTodayTimestamp());
         selectedCategory = "Personal";
-        selectCategoryButton.setText(selectedCategory);
+        selectCategoryButton.setText(getString(R.string.list_personal));
         
         taskTitleInput.requestFocus();
     }
@@ -80,6 +79,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         dateTomorrow = view.findViewById(R.id.date_tomorrow);
         dateThisWeek = view.findViewById(R.id.date_this_week);
         datePick = view.findViewById(R.id.date_pick);
+        timePick = view.findViewById(R.id.time_pick);
         
         selectCategoryButton = view.findViewById(R.id.select_category_button);
         taskDescriptionInput = view.findViewById(R.id.task_description_input);
@@ -106,17 +106,20 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         priorityHigh.setOnClickListener(v -> selectPriority(priorityHigh, 2));
         
         // Date buttons
-        dateToday.setOnClickListener(v -> selectDate(dateToday, getTodayTimestamp()));
-        dateTomorrow.setOnClickListener(v -> selectDate(dateTomorrow, getTomorrowTimestamp()));
-        dateThisWeek.setOnClickListener(v -> selectDate(dateThisWeek, getThisWeekTimestamp()));
+        dateToday.setOnClickListener(v -> { selectDate(dateToday, getTodayTimestamp()); showTimePicker(); });
+        dateTomorrow.setOnClickListener(v -> { selectDate(dateTomorrow, getTomorrowTimestamp()); showTimePicker(); });
+        dateThisWeek.setOnClickListener(v -> { selectDate(dateThisWeek, getThisWeekTimestamp()); showTimePicker(); });
         datePick.setOnClickListener(v -> showDatePicker());
+        if (timePick != null) {
+            timePick.setOnClickListener(v -> showTimePicker());
+        }
         
         // Category button
         selectCategoryButton.setOnClickListener(v -> {
             hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet listPicker = new hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet();
             listPicker.setSelectedList(selectedCategory);
             listPicker.setOnListSelectedListener(list -> {
-                selectedCategory = list.getName();
+                selectedCategory = list.getKey();
                 selectCategoryButton.setText(list.getDisplayName());
             });
             listPicker.show(getParentFragmentManager(), "ListPicker");
@@ -158,6 +161,12 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         
         selected.setSelected(true);
         selectedDueDate = timestamp;
+
+        if (timePick != null && timestamp != null) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(timestamp);
+            timePick.setText(String.format(Locale.getDefault(), "%02d:%02d", calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE)));
+        }
         
         // Update text colors
         dateToday.setTextColor(getResources().getColor(R.color.text_secondary, null));
@@ -173,6 +182,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         Calendar calendar = Calendar.getInstance();
         DatePickerDialog datePickerDialog = new DatePickerDialog(
             requireContext(),
+            R.style.CustomPickerDialogTheme,
             (view, year, month, dayOfMonth) -> {
                 Calendar selected = Calendar.getInstance();
                 selected.set(year, month, dayOfMonth);
@@ -180,12 +190,47 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
                 
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd", Locale.getDefault());
                 datePick.setText(sdf.format(selected.getTime()));
+
+                // Automatically show time picker after date is selected
+                showTimePicker();
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         );
         datePickerDialog.show();
+    }
+
+    private void showTimePicker() {
+        Calendar calendar = Calendar.getInstance();
+        if (selectedDueDate != null) {
+            calendar.setTimeInMillis(selectedDueDate);
+        }
+
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+            requireContext(),
+            R.style.CustomPickerDialogTheme,
+            (view, hourOfDay, minute) -> {
+                Calendar current = Calendar.getInstance();
+                if (selectedDueDate != null) {
+                    current.setTimeInMillis(selectedDueDate);
+                }
+                current.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                current.set(Calendar.MINUTE, minute);
+                current.set(Calendar.SECOND, 0);
+
+                selectedDueDate = current.getTimeInMillis();
+
+                // Format the time correctly
+                if (timePick != null) {
+                    timePick.setText(String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute));
+                }
+            },
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE),
+            true // 24-hour format
+        );
+        timePickerDialog.show();
     }
 
     private long getTodayTimestamp() {

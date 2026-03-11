@@ -25,4 +25,20 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
+
+    <!-- Custom Theme for DatePickerDialog and TimePickerDialog -->
+    <style name="CustomPickerDialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="colorAccent">@color/green_primary</item>
+        <item name="android:colorAccent">@color/green_primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <!-- This fixes the invisible OK/Cancel buttons -->
+        <item name="buttonBarPositiveButtonStyle">@style/CustomDialogButtonStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/CustomDialogButtonStyle</item>
+        <item name="android:buttonBarPositiveButtonStyle">@style/CustomDialogButtonStyle</item>
+        <item name="android:buttonBarNegativeButtonStyle">@style/CustomDialogButtonStyle</item>
+    </style>
+
+    <style name="CustomDialogButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/green_primary</item>
+    </style>
 </resources>

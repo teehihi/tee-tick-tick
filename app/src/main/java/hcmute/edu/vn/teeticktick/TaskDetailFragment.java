@@ -100,7 +100,7 @@ public class TaskDetailFragment extends Fragment {
         }
         
         selectedCategory = taskEntity.getListName();
-        binding.selectCategoryButton.setText(selectedCategory);
+        binding.selectCategoryButton.setText(getLocalizedCategoryName(selectedCategory));
         
         if (taskEntity.getDescription() != null) {
             binding.taskDescriptionInput.setText(taskEntity.getDescription());
@@ -131,7 +131,7 @@ public class TaskDetailFragment extends Fragment {
             hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet listPicker = new hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet();
             listPicker.setSelectedList(selectedCategory);
             listPicker.setOnListSelectedListener(list -> {
-                selectedCategory = list.getName();
+                selectedCategory = list.getKey();
                 binding.selectCategoryButton.setText(list.getDisplayName());
             });
             listPicker.show(getParentFragmentManager(), "ListPicker");
@@ -139,6 +139,18 @@ public class TaskDetailFragment extends Fragment {
         
         binding.updateTaskButton.setOnClickListener(v -> updateTask());
         binding.deleteTaskButton.setOnClickListener(v -> deleteTask());
+    }
+
+    private String getLocalizedCategoryName(String categoryKey) {
+        if (categoryKey == null) return getString(R.string.list_personal);
+        switch (categoryKey) {
+            case "Inbox": return getString(R.string.list_inbox);
+            case "Work": return getString(R.string.list_work);
+            case "Personal": return getString(R.string.list_personal);
+            case "Shopping": return getString(R.string.list_shopping);
+            case "Learning": return getString(R.string.list_learning);
+            default: return categoryKey;
+        }
     }
 
     private void selectPriority(TextView selected, int priority) {
