@@ -22,6 +22,8 @@ import hcmute.edu.vn.teeticktick.databinding.ActivityMainBinding;
 import hcmute.edu.vn.teeticktick.viewmodel.TaskViewModel;
 import hcmute.edu.vn.teeticktick.viewmodel.CategoryViewModel;
 import hcmute.edu.vn.teeticktick.database.CategoryEntity;
+import hcmute.edu.vn.teeticktick.service.DailyTaskService;
+import hcmute.edu.vn.teeticktick.service.NotificationHelper;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -95,6 +97,33 @@ public class MainActivity extends AppCompatActivity {
         TaskViewModel taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
         categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
         setupCountObservers(taskViewModel);
+        
+        // Create notification channels
+        NotificationHelper.createChannels(this);
+        
+        // Request notification permission (Android 13+)
+        requestNotificationPermission();
+        
+        // Start daily task summary service
+        startDailyTaskService();
+    }
+    
+    private void requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
+            }
+        }
+    }
+    
+    private void startDailyTaskService() {
+        Intent serviceIntent = new Intent(this, DailyTaskService.class);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
     }
 
     @Override

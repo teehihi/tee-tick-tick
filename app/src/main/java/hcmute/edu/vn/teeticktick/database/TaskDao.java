@@ -47,4 +47,10 @@ public interface TaskDao {
     
     @Query("DELETE FROM tasks WHERE isCompleted = 1")
     void deleteCompletedTasks();
+    
+    @Query("SELECT * FROM tasks WHERE id = :taskId")
+    TaskEntity getTaskByIdSync(int taskId);
+    
+    @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueDate IS NOT NULL AND dueDate >= :startDate AND dueDate <= :endDate ORDER BY dueDate ASC")
+    List<TaskEntity> getIncompleteTasksByDateRangeSync(long startDate, long endDate);
 }

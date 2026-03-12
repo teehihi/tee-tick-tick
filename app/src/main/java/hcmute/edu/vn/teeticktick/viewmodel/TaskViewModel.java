@@ -26,6 +26,10 @@ public class TaskViewModel extends AndroidViewModel {
         repository.insert(task);
     }
     
+    public void insertAndGetId(TaskEntity task, TaskRepository.OnTaskInsertedListener listener) {
+        repository.insertAndGetId(task, listener);
+    }
+    
     public void update(TaskEntity task) {
         repository.update(task);
     }

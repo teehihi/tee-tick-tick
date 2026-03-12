@@ -27,6 +27,19 @@ public class TaskRepository {
         executorService.execute(() -> taskDao.insert(task));
     }
     
+    public void insertAndGetId(TaskEntity task, OnTaskInsertedListener listener) {
+        executorService.execute(() -> {
+            long id = taskDao.insert(task);
+            if (listener != null) {
+                listener.onTaskInserted((int) id);
+            }
+        });
+    }
+    
+    public interface OnTaskInsertedListener {
+        void onTaskInserted(int taskId);
+    }
+    
     public void update(TaskEntity task) {
         executorService.execute(() -> taskDao.update(task));
     }

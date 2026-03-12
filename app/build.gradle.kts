@@ -47,6 +47,9 @@ dependencies {
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
     
+    // WorkManager
+    implementation(libs.work.runtime)
+    
     // Lifecycle
     implementation(libs.lifecycle.livedata)
     implementation(libs.lifecycle.viewmodel)

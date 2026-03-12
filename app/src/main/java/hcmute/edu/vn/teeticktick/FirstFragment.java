@@ -18,6 +18,7 @@ import java.util.List;
 import hcmute.edu.vn.teeticktick.database.TaskEntity;
 import hcmute.edu.vn.teeticktick.databinding.FragmentFirstBinding;
 import hcmute.edu.vn.teeticktick.viewmodel.TaskViewModel;
+import hcmute.edu.vn.teeticktick.service.TaskReminderScheduler;
 
 public class FirstFragment extends Fragment {
 
@@ -80,6 +81,11 @@ public class FirstFragment extends Fragment {
                 taskEntity.setId(task.getId());
                 taskViewModel.update(taskEntity);
                 android.util.Log.d("DATABASE", "Updated task completed status: " + task.getTitle() + " = " + isChecked);
+                
+                // Cancel reminder when task is completed
+                if (isChecked && getContext() != null) {
+                    TaskReminderScheduler.cancelReminder(getContext(), task.getId());
+                }
             }
         });
         adapter.setOnTaskClickListener(task -> {
@@ -160,7 +166,17 @@ public class FirstFragment extends Fragment {
             System.currentTimeMillis(),
             dueDate
         );
-        taskViewModel.insert(taskEntity);
+        
+        // Use insertAndGetId to schedule reminder with actual task ID
+        final Long finalDueDate = dueDate;
+        final String finalEmoji = emoji;
+        taskViewModel.insertAndGetId(taskEntity, taskId -> {
+            if (finalDueDate != null && finalDueDate > 0 && getContext() != null) {
+                TaskReminderScheduler.scheduleReminder(
+                    getContext(), taskId, title, finalEmoji, finalDueDate
+                );
+            }
+        });
     }
 
     public void filterByToday() {
