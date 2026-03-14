@@ -1,169 +1,370 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/light_bg"
+    android:background="#F2F2F7"
     tools:context=".TimelineFragment">
 
-    <!-- Header -->
+    <!-- iOS-style Control Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/card_bg"
-        android:elevation="4dp"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="16dp">
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#FFFFFF"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:elevation="2dp">
 
+        <!-- Prev week: iOS chevron -->
         <TextView
-            android:layout_width="wrap_content"
+            android:id="@+id/btn_prev_week"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="‹"
+            android:textSize="28sp"
+            android:textColor="#007AFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:includeFontPadding="false"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <!-- Week label -->
+        <TextView
+            android:id="@+id/tv_week_label"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Dòng thời gian"
-            android:textColor="@color/text_primary"
-            android:textSize="24sp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textColor="#1C1C1E"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:letterSpacing="-0.02"
+            android:text="Mar 10 – Mar 16" />
 
+        <!-- Next week: iOS chevron -->
         <TextView
-            android:id="@+id/timeline_subtitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tất cả nhiệm vụ theo thời gian"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:id="@+id/btn_next_week"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:text="›"
+            android:textSize="28sp"
+            android:textColor="#007AFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:includeFontPadding="false"
+            android:clickable="true"
+            android:focusable="true" />
+
     </LinearLayout>
 
-    <!-- Filter Chips -->
-    <HorizontalScrollView
+    <!-- iOS separator line -->
+    <View
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none"
-        android:background="@color/card_bg"
-        android:elevation="2dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="12dp">
+        android:layout_height="0.5dp"
+        android:background="#C6C6C8" />
 
+    <!-- Gantt Grid Container -->
+    <LinearLayout
+        android:id="@+id/gantt_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <!-- Left Sidebar: Category Labels (iOS card look) -->
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:id="@+id/sidebar_labels"
+            android:layout_width="88dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:background="#FFFFFF"
+            android:elevation="2dp">
 
-            <TextView
-                android:id="@+id/filter_all"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:minWidth="80dp"
-                android:text="Tất cả"
-                android:textColor="@color/white"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/chip_category_selector"
-                android:layout_marginEnd="8dp"
-                android:clickable="true"
-                android:focusable="true" />
+            <!-- Spacer matching date header height -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="#FFFFFF" />
 
-            <TextView
-                android:id="@+id/filter_today"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:minWidth="80dp"
-                android:text="Hôm nay"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:gravity="center"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/chip_category_selector"
-                android:layout_marginEnd="8dp"
-                android:clickable="true"
-                android:focusable="true" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="#C6C6C8" />
 
-            <TextView
-                android:id="@+id/filter_week"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:minWidth="80dp"
-                android:text="Tuần này"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:gravity="center"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/chip_category_selector"
-                android:layout_marginEnd="8dp"
-                android:clickable="true"
-                android:focusable="true" />
+            <!-- Row 1: Inbox -->
+            <LinearLayout
+                android:id="@+id/sidebar_row_1"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="6dp"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/filter_completed"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:minWidth="80dp"
-                android:text="Hoàn thành"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp"
-                android:gravity="center"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:background="@drawable/chip_category_selector"
-                android:clickable="true"
-                android:focusable="true" />
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_category_dot"
+                    android:backgroundTint="#5AC8FA"
+                    android:layout_marginEnd="9dp" />
+
+                <TextView
+                    android:id="@+id/label_row_1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Hộp thư"
+                    android:textColor="#1C1C1E"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" android:layout_marginStart="10dp" />
+
+            <!-- Row 2: Work -->
+            <LinearLayout
+                android:id="@+id/sidebar_row_2"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="6dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_category_dot"
+                    android:backgroundTint="#BF5AF2"
+                    android:layout_marginEnd="9dp" />
+
+                <TextView
+                    android:id="@+id/label_row_2"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Công việc"
+                    android:textColor="#1C1C1E"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" android:layout_marginStart="10dp" />
+
+            <!-- Row 3: Personal -->
+            <LinearLayout
+                android:id="@+id/sidebar_row_3"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="6dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_category_dot"
+                    android:backgroundTint="#34C759"
+                    android:layout_marginEnd="9dp" />
+
+                <TextView
+                    android:id="@+id/label_row_3"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Cá nhân"
+                    android:textColor="#1C1C1E"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" android:layout_marginStart="10dp" />
+
+            <!-- Row 4: Shopping -->
+            <LinearLayout
+                android:id="@+id/sidebar_row_4"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="6dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_category_dot"
+                    android:backgroundTint="#FF9500"
+                    android:layout_marginEnd="9dp" />
+
+                <TextView
+                    android:id="@+id/label_row_4"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Mua sắm"
+                    android:textColor="#1C1C1E"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" android:layout_marginStart="10dp" />
+
+            <!-- Row 5: Learning -->
+            <LinearLayout
+                android:id="@+id/sidebar_row_5"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="6dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="10dp"
+                    android:layout_height="10dp"
+                    android:background="@drawable/bg_category_dot"
+                    android:backgroundTint="#FF3B30"
+                    android:layout_marginEnd="9dp" />
+
+                <TextView
+                    android:id="@+id/label_row_5"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Học tập"
+                    android:textColor="#1C1C1E"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#C6C6C8" />
+
         </LinearLayout>
-    </HorizontalScrollView>
 
-    <!-- Timeline RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/timeline_recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="16dp"
-        android:paddingBottom="80dp" />
+        <!-- Thin shadow separator -->
+        <View
+            android:layout_width="0.5dp"
+            android:layout_height="match_parent"
+            android:background="#C6C6C8" />
 
-    <!-- Empty State -->
+        <!-- Right Scrollable Grid -->
+        <HorizontalScrollView
+            android:id="@+id/gantt_horizontal_scroll"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:scrollbars="none"
+            android:overScrollMode="never">
+
+            <LinearLayout
+                android:id="@+id/gantt_grid"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:background="#FFFFFF">
+
+                <!-- Date Header Row -->
+                <LinearLayout
+                    android:id="@+id/date_header_row"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:orientation="horizontal"
+                    android:background="#FFFFFF" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="#C6C6C8" />
+
+                <!-- Row 1: Inbox -->
+                <FrameLayout
+                    android:id="@+id/row_inbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="72dp"
+                    android:background="#FAFAFA" />
+
+                <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
+
+                <!-- Row 2: Work -->
+                <FrameLayout
+                    android:id="@+id/row_work"
+                    android:layout_width="wrap_content"
+                    android:layout_height="72dp"
+                    android:background="#FFFFFF" />
+
+                <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
+
+                <!-- Row 3: Personal -->
+                <FrameLayout
+                    android:id="@+id/row_personal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="72dp"
+                    android:background="#FAFAFA" />
+
+                <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
+
+                <!-- Row 4: Shopping -->
+                <FrameLayout
+                    android:id="@+id/row_shopping"
+                    android:layout_width="wrap_content"
+                    android:layout_height="72dp"
+                    android:background="#FFFFFF" />
+
+                <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
+
+                <!-- Row 5: Learning -->
+                <FrameLayout
+                    android:id="@+id/row_learning"
+                    android:layout_width="wrap_content"
+                    android:layout_height="72dp"
+                    android:background="#FAFAFA" />
+
+                <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#C6C6C8" />
+
+            </LinearLayout>
+        </HorizontalScrollView>
+    </LinearLayout>
+
+    <!-- Empty state -->
     <LinearLayout
         android:id="@+id/timeline_empty_state"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0"
         android:orientation="vertical"
         android:gravity="center"
-        android:padding="32dp"
+        android:padding="40dp"
+        android:background="#F2F2F7"
         android:visibility="gone">
 
         <TextView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:text="⏰"
-            android:textSize="64sp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:text="📅"
+            android:textSize="52sp"
             android:gravity="center"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Chưa có nhiệm vụ"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp"
+            android:textColor="#1C1C1E"
+            android:textSize="17sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Thêm nhiệm vụ mới để bắt đầu"
-            android:textColor="@color/text_secondary"
+            android:text="Thêm nhiệm vụ với ngày hạn để hiển thị trên lịch này"
+            android:textColor="#8E8E93"
             android:textSize="14sp"
             android:gravity="center" />
     </LinearLayout>

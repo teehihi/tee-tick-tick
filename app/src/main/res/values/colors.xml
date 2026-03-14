@@ -26,4 +26,22 @@
     <color name="priority_high">#E74C3C</color>
     <color name="priority_medium">#FF6B35</color>
     <color name="priority_low">#95A5A6</color>
+
+    <!-- Timeline Gantt chart colors -->
+    <color name="timeline_product">#E3F2FD</color>
+    <color name="timeline_product_text">#1565C0</color>
+    <color name="timeline_design">#F3E5F5</color>
+    <color name="timeline_design_text">#6A1B9A</color>
+    <color name="timeline_dev">#E0F7FA</color>
+    <color name="timeline_dev_text">#00695C</color>
+    <color name="timeline_dev2">#E8F5E9</color>
+    <color name="timeline_dev2_text">#2E7D32</color>
+    <color name="timeline_operation">#FFFDE7</color>
+    <color name="timeline_operation_text">#F57F17</color>
+    <color name="timeline_test">#FFF3E0</color>
+    <color name="timeline_test_text">#E65100</color>
+    <color name="timeline_today_red">#E53935</color>
+    <color name="timeline_grid_line">#EEEEEE</color>
+    <color name="timeline_sidebar_bg">#FAFAFA</color>
+    <color name="timeline_header_bg">#FFFFFF</color>
 </resources>
