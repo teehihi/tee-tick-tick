@@ -32,5 +32,4 @@
         android:thumb="@drawable/toggle_thumb"
         android:track="@drawable/toggle_track"
         android:clickable="false"
-        android:focusable="false" />
-</LinearLayout>
+        android:focusable="false" /></LinearLayout>

@@ -2,6 +2,7 @@ package hcmute.edu.vn.teeticktick;
 
 import android.app.AlertDialog;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -11,9 +12,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -42,7 +44,7 @@ public class TimelineFragment extends Fragment {
     private static final int NUM_DAYS      = 7;
     private static final int COLUMN_WIDTH_DP_MIN = 60;
     private static final int COLUMN_WIDTH_DP_DEFAULT = 88;
-    private static final int COLUMN_WIDTH_DP_MAX = 150;
+    private static final int COLUMN_WIDTH_DP_MAX = 600; // ~24h per column at max zoom
     
     // Current zoom level (column width)
     private int currentColumnWidthDp = COLUMN_WIDTH_DP_DEFAULT;
@@ -106,11 +108,11 @@ public class TimelineFragment extends Fragment {
 
         // Zoom controls
         binding.btnZoomIn.setOnClickListener(v -> {
-            currentColumnWidthDp = Math.min(currentColumnWidthDp + 10, COLUMN_WIDTH_DP_MAX);
+            currentColumnWidthDp = Math.min(currentColumnWidthDp + 30, COLUMN_WIDTH_DP_MAX);
             refreshTimeline();
         });
         binding.btnZoomOut.setOnClickListener(v -> {
-            currentColumnWidthDp = Math.max(currentColumnWidthDp - 10, COLUMN_WIDTH_DP_MIN);
+            currentColumnWidthDp = Math.max(currentColumnWidthDp - 30, COLUMN_WIDTH_DP_MIN);
             refreshTimeline();
         });
 
@@ -120,6 +122,17 @@ public class TimelineFragment extends Fragment {
         taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) { cachedTasks = tasks; refreshTimeline(); }
         });
+
+        // After first layout pass, re-render pills with accurate row heights
+        binding.ganttContainer.getViewTreeObserver().addOnGlobalLayoutListener(
+            new android.view.ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    binding.ganttContainer.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    populateGanttGrid(cachedTasks);
+                }
+            }
+        );
     }
 
     // ── Refresh ───────────────────────────────────────────────────────────────
@@ -238,8 +251,8 @@ public class TimelineFragment extends Fragment {
         boolean anyVisible = false;
         for (TaskEntity task : allTasks) {
             if (task.getDueDate() == null) continue;
-            long taskStart = startOfDay(task.getCreatedAt());
-            long taskEnd   = startOfDay(task.getDueDate()) + dayMs;
+            long taskStart = task.getCreatedAt();
+            long taskEnd   = task.getDueDate();
             if (taskEnd <= weekStartMs || taskStart >= weekEndMs) continue;
 
             String key = task.getListName();
@@ -265,7 +278,10 @@ public class TimelineFragment extends Fragment {
     }
 
     /**
-     * Place pill bars spanning from createdAt → dueDate, clamped to visible window.
+     * Place pill bars using hour-based positioning within each day column.
+     * leftPx  = dayCol * colPx + (startHourFraction * colPx)
+     * barWidth = durationFraction * colPx  (clamped to visible window)
+     * Multiple tasks on same day stack vertically.
      */
     private void placeSpannedBars(FrameLayout row, List<TaskEntity> tasks,
                                    long weekStartMs, long dayMs, int colPx, int categoryIdx) {
@@ -275,87 +291,254 @@ public class TimelineFragment extends Fragment {
         int textColor   = CATEGORY_BAR_TEXT[categoryIdx];
         int strokeColor = CATEGORY_BAR_STROKE[categoryIdx];
 
-        int barH      = dpToPx(26);
-        int rowH      = dpToPx(72);
-        int stackStep = dpToPx(30);
+        boolean showTimeMode = currentColumnWidthDp >= 110;  // 1 hour = colPx/24, show time when ≥ ~4.5dp/hr
+        int rowH      = row.getHeight() > 0 ? row.getHeight() : dpToPx(72);
+        int barH      = showTimeMode ? dpToPx(36) : dpToPx(24);
+        int stackStep = barH + dpToPx(4);
 
-        // Track which columns have tasks to manage stacking
-        Map<Integer, Integer> stackCount = new HashMap<>();
+        // Pre-count tasks per day for vertical centering
+        Map<Integer, Integer> dayTotalCount = new HashMap<>();
+        for (TaskEntity task : tasks) {
+            if (task.getDueDate() == null) continue;
+            long taskStartMs = task.getCreatedAt();
+            long taskEndMs   = task.getDueDate();
+            if (taskEndMs <= weekStartMs || taskStartMs >= weekStartMs + NUM_DAYS * dayMs) continue;
+            long visStart = Math.max(taskStartMs, weekStartMs);
+            int dayCol = (int)((visStart - weekStartMs) / dayMs);
+            dayCol = Math.max(0, Math.min(dayCol, NUM_DAYS - 1));
+            dayTotalCount.put(dayCol, (dayTotalCount.containsKey(dayCol) ? dayTotalCount.get(dayCol) : 0) + 1);
+        }
+
+        // Per-day stack counter: key = day index (0-6)
+        Map<Integer, Integer> dayStackCount = new HashMap<>();
 
         for (TaskEntity task : tasks) {
             if (task.getDueDate() == null) continue;
 
-            long taskStartMs = startOfDay(task.getCreatedAt());
-            long taskEndMs   = startOfDay(task.getDueDate()) + dayMs;
+            long taskStartMs = task.getCreatedAt();
+            long taskEndMs   = task.getDueDate();
+            if (taskEndMs <= weekStartMs || taskStartMs >= weekStartMs + NUM_DAYS * dayMs) continue;
 
+            // Clamp to visible week window
             long visStart = Math.max(taskStartMs, weekStartMs);
             long visEnd   = Math.min(taskEndMs, weekStartMs + NUM_DAYS * dayMs);
             if (visEnd <= visStart) continue;
 
-            int startCol = (int) ((visStart - weekStartMs) / dayMs);
-            int spanDays = (int) Math.ceil((double)(visEnd - visStart) / dayMs);
-            spanDays = Math.max(1, Math.min(spanDays, NUM_DAYS - startCol));
+            // Day column of the start position
+            int startDayCol = (int) ((visStart - weekStartMs) / dayMs);
+            startDayCol = Math.max(0, Math.min(startDayCol, NUM_DAYS - 1));
 
-            // Find the lowest available stack position for this task
-            int stack = 0;
-            for (int col = startCol; col < startCol + spanDays; col++) {
-                int colStack = stackCount.containsKey(col) ? stackCount.get(col) : 0;
-                stack = Math.max(stack, colStack);
-            }
+            // Hour fraction within the start day (0.0 = 00:00, 1.0 = 24:00)
+            long dayStartMs = weekStartMs + (long) startDayCol * dayMs;
+            float startFraction = (float)(visStart - dayStartMs) / dayMs;
 
-            // Update stack count for all columns this task spans
-            for (int col = startCol; col < startCol + spanDays; col++) {
-                stackCount.put(col, stack + 1);
-            }
+            // Duration as fraction of a day (can span multiple days)
+            float durationFraction = (float)(visEnd - visStart) / dayMs;
+            // Cap width at remaining days in view
+            float maxFraction = NUM_DAYS - startDayCol - startFraction;
+            durationFraction = Math.min(durationFraction, maxFraction);
+            durationFraction = Math.max(durationFraction, 1f / 24f); // min 1 hour width
 
-            int topMargin = dpToPx(8) + stack * stackStep;
-            
-            // Skip if task would overflow the row
-            if (topMargin + barH > rowH - dpToPx(4)) continue;
+            int leftPx   = (int)(startDayCol * colPx + startFraction * colPx) + dpToPx(2);
+            int barWidth = Math.max((int)(durationFraction * colPx) - dpToPx(4), dpToPx(48));
 
-            int leftPx  = startCol * colPx + dpToPx(4);
-            int barWidth = spanDays * colPx - dpToPx(8);
+            // Stack: count tasks already placed on the start day
+            int stack = dayStackCount.containsKey(startDayCol) ? dayStackCount.get(startDayCol) : 0;
+            dayStackCount.put(startDayCol, stack + 1);
 
-            // Build iOS-style pill
-            TextView bar = new TextView(requireContext());
-            bar.setText(buildLabel(task));
-            bar.setTextColor(textColor);
-            bar.setTextSize(11f);
-            bar.setSingleLine(true);
-            bar.setEllipsize(TextUtils.TruncateAt.END);
-            bar.setPaddingRelative(dpToPx(8), dpToPx(2), dpToPx(8), dpToPx(2));
-            bar.setGravity(Gravity.CENTER_VERTICAL);
-            bar.setIncludeFontPadding(false);
+            // Vertical centering: offset the whole group to center in row
+            int totalInDay = dayTotalCount.containsKey(startDayCol) ? dayTotalCount.get(startDayCol) : 1;
+            int groupHeight = totalInDay * barH + (totalInDay - 1) * dpToPx(4);
+            int centerOffset = Math.max(0, (rowH - groupHeight) / 2);
 
-            // Rounded pill drawable with slight stroke
+            // Skip if overflows row
+            int topMargin = centerOffset + stack * stackStep;
+            if (topMargin + barH > rowH - dpToPx(2)) continue;
+
+            // Build pill
+            // Show time label when pill is wide enough to display it (≥ 60dp)
+            boolean showTime = barWidth >= dpToPx(60);
+
             android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
             shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-            shape.setCornerRadius(dpToPx(13));
+            shape.setCornerRadius(dpToPx(10));
             shape.setColor(bgColor);
             shape.setStroke(dpToPx(1), strokeColor);
-            bar.setBackground(shape);
 
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(barWidth, barH);
+            LinearLayout pill = new LinearLayout(requireContext());
+            pill.setOrientation(LinearLayout.VERTICAL);
+            pill.setGravity(Gravity.CENTER);
+            pill.setPaddingRelative(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2));
+            pill.setBackground(shape);
+
+            TextView tvTitle = new TextView(requireContext());
+            tvTitle.setText(buildLabel(task));
+            tvTitle.setTextColor(textColor);
+            tvTitle.setTextSize(11f);
+            tvTitle.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            tvTitle.setSingleLine(true);
+            tvTitle.setEllipsize(TextUtils.TruncateAt.END);
+            tvTitle.setIncludeFontPadding(false);
+            tvTitle.setGravity(Gravity.CENTER);
+            tvTitle.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            pill.addView(tvTitle);
+
+            if (showTime) {
+                TextView tvTime = new TextView(requireContext());
+                tvTime.setText(buildTimeLabel(task));
+                tvTime.setTextColor(0xFF888888);
+                tvTime.setTextSize(9f);
+                tvTime.setGravity(Gravity.CENTER);
+                tvTime.setTypeface(android.graphics.Typeface.DEFAULT);
+                tvTime.setSingleLine(true);
+                tvTime.setEllipsize(TextUtils.TruncateAt.END);
+                tvTime.setIncludeFontPadding(false);
+                LinearLayout.LayoutParams timeLp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                timeLp.topMargin = dpToPx(1);
+                tvTime.setLayoutParams(timeLp);
+                pill.addView(tvTime);
+            }
+
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(barWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.leftMargin = leftPx;
             lp.topMargin  = topMargin;
-            bar.setLayoutParams(lp);
+            pill.setLayoutParams(lp);
 
             final int taskId = task.getId();
-            bar.setOnClickListener(v -> {
+            final TaskEntity taskRef = task;
+            final int bgCol = bgColor;
+            final int txtCol = textColor;
+            final int strokeCol = strokeColor;
+            pill.setOnClickListener(v -> {
                 Bundle b = new Bundle();
                 b.putInt("taskId", taskId);
                 NavHostFragment.findNavController(TimelineFragment.this)
                         .navigate(R.id.TaskDetailFragment, b);
             });
+            pill.setOnLongClickListener(v -> {
+                showTaskPreviewPopup(taskRef, pill, bgCol, txtCol, strokeCol);
+                return true;
+            });
 
-            row.addView(bar);
+            row.addView(pill);
         }
+    }
+
+    private void showTaskPreviewPopup(TaskEntity task, View anchor, int bgColor, int textColor, int strokeColor) {
+        View popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_task_preview, null);
+
+        // Use stroke color (full opacity category color) as popup background base
+        // Apply a light tint: mix strokeColor with white at ~80% white
+        int sr = (strokeColor >> 16) & 0xFF;
+        int sg = (strokeColor >> 8) & 0xFF;
+        int sb = strokeColor & 0xFF;
+        // 30% stroke color + 70% white → matches the pill tint feel but solid
+        int solidBg = Color.rgb(
+                (int)(sr * 0.30f + 255 * 0.70f),
+                (int)(sg * 0.30f + 255 * 0.70f),
+                (int)(sb * 0.30f + 255 * 0.70f)
+        );
+        GradientDrawable bg = new GradientDrawable();
+        bg.setShape(GradientDrawable.RECTANGLE);
+        bg.setCornerRadius(dpToPx(14));
+        bg.setColor(solidBg);
+        bg.setStroke(dpToPx(2), strokeColor);
+        popupView.setBackground(bg);
+
+        // Populate views
+        TextView tvEmoji = popupView.findViewById(R.id.popup_emoji);
+        TextView tvTitle = popupView.findViewById(R.id.popup_title);
+        TextView tvTime  = popupView.findViewById(R.id.popup_time);
+        TextView tvDesc  = popupView.findViewById(R.id.popup_description);
+        TextView tvHint  = popupView.findViewById(R.id.popup_hint);
+
+        String emoji = task.getEmoji();
+        if (emoji != null && !emoji.isEmpty()) {
+            tvEmoji.setText(emoji);
+            tvEmoji.setVisibility(View.VISIBLE);
+        } else {
+            tvEmoji.setVisibility(View.GONE);
+        }
+
+        tvTitle.setText(task.getTitle() != null ? task.getTitle() : "");
+        tvTitle.setTextColor(textColor);
+
+        tvTime.setText(buildTimeLabel(task));
+        tvTime.setTextColor(textColor);
+
+        String desc = task.getDescription();
+        if (desc != null && !desc.trim().isEmpty()) {
+            tvDesc.setText(desc);
+            tvDesc.setTextColor(0xFF666666);
+            tvDesc.setVisibility(View.VISIBLE);
+        } else {
+            tvDesc.setVisibility(View.GONE);
+            // Hide divider too when no description
+            View divider = popupView.findViewById(R.id.popup_divider);
+            if (divider != null) divider.setVisibility(View.GONE);
+        }
+
+        tvHint.setTextColor((textColor & 0x00FFFFFF) | 0x99000000);
+
+        // Create popup window
+        PopupWindow popup = new PopupWindow(
+                popupView,
+                dpToPx(260),
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true // focusable — dismisses on outside touch
+        );
+        popup.setElevation(dpToPx(12));
+        popup.setOutsideTouchable(true);
+        popup.setAnimationStyle(R.style.PopupAnimation);
+
+        // Dim background while popup is open
+        final View decorView = requireActivity().getWindow().getDecorView();
+        final android.view.WindowManager.LayoutParams wlp =
+                (android.view.WindowManager.LayoutParams) decorView.getLayoutParams();
+        requireActivity().getWindow().setDimAmount(0.4f);
+        requireActivity().getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+
+        popup.setOnDismissListener(() ->
+                requireActivity().getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND));
+
+        // Navigate to detail on popup click
+        final int taskId = task.getId();
+        popupView.setOnClickListener(v -> {
+            popup.dismiss();
+            Bundle bundle = new Bundle();
+            bundle.putInt("taskId", taskId);
+            NavHostFragment.findNavController(TimelineFragment.this)
+                    .navigate(R.id.TaskDetailFragment, bundle);
+        });
+
+        // Show centered on screen
+        popup.showAtLocation(decorView, Gravity.CENTER, 0, 0);
     }
 
     private String buildLabel(TaskEntity task) {
         String e = task.getEmoji();
         String t = task.getTitle() != null ? task.getTitle() : "";
         return (e != null && !e.isEmpty()) ? e + " " + t : t;
+    }
+
+    private String buildTimeLabel(TaskEntity task) {
+        SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        long taskStartMs = task.getCreatedAt();
+        long taskEndMs   = task.getDueDate() != null ? task.getDueDate() : taskStartMs;
+
+        boolean multiDay = startOfDay(taskEndMs) > startOfDay(taskStartMs);
+        if (multiDay) {
+            return dateFmt.format(new Date(taskStartMs)) + " " + timeFmt.format(new Date(taskStartMs))
+                 + " – " + dateFmt.format(new Date(taskEndMs)) + " " + timeFmt.format(new Date(taskEndMs));
+        } else {
+            return dateFmt.format(new Date(taskStartMs))
+                 + "  " + timeFmt.format(new Date(taskStartMs))
+                 + " – " + timeFmt.format(new Date(taskEndMs));
+        }
     }
 
     // ── Column Dividers ───────────────────────────────────────────────────────
@@ -509,6 +692,8 @@ public class TimelineFragment extends Fragment {
             if (sr != null) sr.setVisibility(vis);
             gridRows[i].setVisibility(vis);
         }
+        // Recalculate row heights after visibility changes
+        binding.ganttContainer.post(() -> populateGanttGrid(cachedTasks));
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -87,14 +87,13 @@
                 android:background="@drawable/bg_input_field" />
         </LinearLayout>
 
-        <!-- Checkbox changed to Toggle -->
-        <Switch
+        <!-- Checkbox -->
+        <CheckBox
             android:id="@+id/task_checkbox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:thumb="@drawable/toggle_thumb"
-            android:track="@drawable/toggle_track" />
+            android:button="@drawable/custom_checkbox" />
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

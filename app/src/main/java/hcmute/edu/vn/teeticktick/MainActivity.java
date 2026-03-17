@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -77,6 +78,22 @@ public class MainActivity extends AppCompatActivity {
         
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.bottomNav, navController);
+
+        // Adjust fragment container to not be covered by bottom nav
+        binding.bottomNav.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            View container = findViewById(R.id.fragment_container);
+            if (container != null) {
+                int navH = binding.bottomNav.getHeight();
+                if (navH == 0) return;
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) container.getLayoutParams();
+                // Add 8dp buffer to ensure last row is fully visible
+                int targetMargin = navH + (int)(8 * getResources().getDisplayMetrics().density);
+                if (lp.bottomMargin != targetMargin) {
+                    lp.bottomMargin = targetMargin;
+                    container.setLayoutParams(lp);
+                }
+            }
+        });
 
         setupCustomDrawer();
         setupDrawerListener();

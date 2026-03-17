@@ -4,7 +4,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Switch;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -142,7 +142,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
         TextView taskTitle;
         TextView taskCategory;
         View timeIndicator;
-        Switch taskCheckbox; // Changed from CheckBox to Switch
+        CheckBox taskCheckbox;
 
         ViewHolder(View itemView) {
             super(itemView);

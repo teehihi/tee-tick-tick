@@ -18,7 +18,6 @@
         android:paddingEnd="4dp"
         android:elevation="2dp">
 
-        <!-- Prev week: iOS chevron -->
         <TextView
             android:id="@+id/btn_prev_week"
             android:layout_width="36dp"
@@ -32,22 +31,18 @@
             android:clickable="true"
             android:focusable="true" />
 
-        <!-- Zoom out -->
-        <TextView
+        <ImageView
             android:id="@+id/btn_zoom_out"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:gravity="center"
-            android:text="🔍−"
-            android:textSize="11sp"
-            android:textColor="#007AFF"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_ios_zoom_out"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:includeFontPadding="false"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginStart="2dp" />
+            android:contentDescription="Zoom out"
+            android:layout_marginStart="2dp"
+            android:padding="4dp" />
 
-        <!-- Week label -->
         <TextView
             android:id="@+id/tv_week_label"
             android:layout_width="0dp"
@@ -62,22 +57,18 @@
             android:paddingStart="4dp"
             android:paddingEnd="4dp" />
 
-        <!-- Zoom in -->
-        <TextView
+        <ImageView
             android:id="@+id/btn_zoom_in"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:gravity="center"
-            android:text="🔍+"
-            android:textSize="11sp"
-            android:textColor="#007AFF"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_ios_zoom_in"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:includeFontPadding="false"
             android:clickable="true"
             android:focusable="true"
-            android:layout_marginEnd="2dp" />
+            android:contentDescription="Zoom in"
+            android:layout_marginEnd="2dp"
+            android:padding="4dp" />
 
-        <!-- Next week: iOS chevron -->
         <TextView
             android:id="@+id/btn_next_week"
             android:layout_width="36dp"
@@ -93,13 +84,12 @@
 
     </LinearLayout>
 
-    <!-- iOS separator line -->
     <View
         android:layout_width="match_parent"
         android:layout_height="0.5dp"
         android:background="#C6C6C8" />
 
-    <!-- Gantt Grid Container -->
+    <!-- Gantt Grid Container: fills remaining screen height -->
     <LinearLayout
         android:id="@+id/gantt_container"
         android:layout_width="match_parent"
@@ -107,7 +97,7 @@
         android:layout_weight="1"
         android:orientation="horizontal">
 
-        <!-- Left Sidebar: Category Labels (iOS card look) -->
+        <!-- Left Sidebar -->
         <LinearLayout
             android:id="@+id/sidebar_labels"
             android:layout_width="88dp"
@@ -127,11 +117,12 @@
                 android:layout_height="0.5dp"
                 android:background="#C6C6C8" />
 
-            <!-- Row 1: Inbox -->
+            <!-- Row 1: Inbox — weight=1 fills available space equally -->
             <LinearLayout
                 android:id="@+id/sidebar_row_1"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:paddingStart="12dp"
                 android:paddingEnd="6dp"
@@ -161,7 +152,8 @@
             <LinearLayout
                 android:id="@+id/sidebar_row_2"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:paddingStart="12dp"
                 android:paddingEnd="6dp"
@@ -191,7 +183,8 @@
             <LinearLayout
                 android:id="@+id/sidebar_row_3"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:paddingStart="12dp"
                 android:paddingEnd="6dp"
@@ -221,7 +214,8 @@
             <LinearLayout
                 android:id="@+id/sidebar_row_4"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:paddingStart="12dp"
                 android:paddingEnd="6dp"
@@ -251,7 +245,8 @@
             <LinearLayout
                 android:id="@+id/sidebar_row_5"
                 android:layout_width="match_parent"
-                android:layout_height="72dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:paddingStart="12dp"
                 android:paddingEnd="6dp"
@@ -279,7 +274,6 @@
 
         </LinearLayout>
 
-        <!-- Thin shadow separator -->
         <View
             android:layout_width="0.5dp"
             android:layout_height="match_parent"
@@ -301,7 +295,6 @@
                 android:orientation="vertical"
                 android:background="#FFFFFF">
 
-                <!-- Date Header Row -->
                 <LinearLayout
                     android:id="@+id/date_header_row"
                     android:layout_width="wrap_content"
@@ -318,7 +311,8 @@
                 <FrameLayout
                     android:id="@+id/row_inbox"
                     android:layout_width="wrap_content"
-                    android:layout_height="72dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:background="#FAFAFA" />
 
                 <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
@@ -327,7 +321,8 @@
                 <FrameLayout
                     android:id="@+id/row_work"
                     android:layout_width="wrap_content"
-                    android:layout_height="72dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:background="#FFFFFF" />
 
                 <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
@@ -336,7 +331,8 @@
                 <FrameLayout
                     android:id="@+id/row_personal"
                     android:layout_width="wrap_content"
-                    android:layout_height="72dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:background="#FAFAFA" />
 
                 <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
@@ -345,7 +341,8 @@
                 <FrameLayout
                     android:id="@+id/row_shopping"
                     android:layout_width="wrap_content"
-                    android:layout_height="72dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:background="#FFFFFF" />
 
                 <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#E5E5EA" />
@@ -354,7 +351,8 @@
                 <FrameLayout
                     android:id="@+id/row_learning"
                     android:layout_width="wrap_content"
-                    android:layout_height="72dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     android:background="#FAFAFA" />
 
                 <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="#C6C6C8" />
