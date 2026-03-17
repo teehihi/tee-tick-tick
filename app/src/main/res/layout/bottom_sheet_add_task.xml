@@ -183,19 +183,20 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Due Date Section -->
+    <!-- Date/Time Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginBottom="20dp">
 
+        <!-- Section header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
+            android:layout_marginBottom="14dp">
 
             <ImageView
                 android:layout_width="20dp"
@@ -207,104 +208,228 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:text="Ngày đến hạn"
+                android:text="Thời gian"
                 android:textColor="@color/text_primary"
                 android:textSize="15sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- ── BẮT ĐẦU ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bắt đầu"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Quick chips: start -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none">
-
+            android:scrollbars="none"
+            android:layout_marginBottom="8dp">
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/date_today"
+                    android:id="@+id/start_today"
                     android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="100dp"
+                    android:layout_height="36dp"
                     android:text="Hôm nay"
                     android:textColor="@color/text_secondary"
-                    android:textSize="15sp"
+                    android:textSize="13sp"
                     android:gravity="center"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:background="@drawable/chip_category_selector"
                     android:layout_marginEnd="8dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
-                    android:id="@+id/date_tomorrow"
+                    android:id="@+id/start_tomorrow"
                     android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="100dp"
+                    android:layout_height="36dp"
                     android:text="Ngày mai"
                     android:textColor="@color/text_secondary"
-                    android:textSize="15sp"
+                    android:textSize="13sp"
                     android:gravity="center"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:background="@drawable/chip_category_selector"
                     android:layout_marginEnd="8dp"
                     android:clickable="true"
                     android:focusable="true" />
 
                 <TextView
-                    android:id="@+id/date_this_week"
+                    android:id="@+id/start_pick"
                     android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="100dp"
-                    android:text="Tuần này"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="15sp"
-                    android:gravity="center"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <TextView
-                    android:id="@+id/date_pick"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="100dp"
+                    android:layout_height="36dp"
                     android:text="Chọn ngày"
                     android:textColor="@color/text_secondary"
-                    android:textSize="15sp"
+                    android:textSize="13sp"
                     android:gravity="center"
-                    android:paddingStart="20dp"
-                    android:paddingEnd="20dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
-
-                <!-- Time Picker -->
-                <TextView
-                    android:id="@+id/time_pick"
-                    android:layout_width="wrap_content"
-                    android:layout_height="44dp"
-                    android:minWidth="80dp"
-                    android:text="23:59"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="15sp"
-                    android:gravity="center"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
                     android:clickable="true"
                     android:focusable="true" />
             </LinearLayout>
         </HorizontalScrollView>
+
+        <!-- Start date + time display row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/start_date_btn"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="Chọn ngày"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_category_selector"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/start_time_btn"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:text="--:--"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_category_selector"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- ── ĐẾN HẠN ── -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Đến hạn"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="6dp" />
+
+        <!-- Quick chips: end -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:layout_marginBottom="8dp">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/end_today"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Hôm nay"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/chip_category_selector"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/end_tomorrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Ngày mai"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/chip_category_selector"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/end_this_week"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Tuần này"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/chip_category_selector"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/end_pick"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Chọn ngày"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:background="@drawable/chip_category_selector"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!-- End date + time display row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/end_date_btn"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:text="Chọn ngày"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_category_selector"
+                android:layout_marginEnd="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
+            <TextView
+                android:id="@+id/end_time_btn"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:text="--:--"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_category_selector"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <!-- Category Section -->

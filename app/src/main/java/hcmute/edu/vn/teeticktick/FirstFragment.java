@@ -58,6 +58,7 @@ public class FirstFragment extends Fragment {
                     "",
                     0,
                     0,
+                    null,
                     null
                 );
                 taskEntity.setId(task.getId());
@@ -128,35 +129,24 @@ public class FirstFragment extends Fragment {
 
     // observeTasks() removed because we now rely on individual filter methods.
 
-    public void addTask(String title, String description, String emoji, String listName, Long dueDate) {
+    public void addTask(String title, String description, String emoji, String listName, Long startDate, Long dueDate) {
         String targetList = listName;
-        
-        // Nếu không có listName nào được cung cấp, sử dụng list hiện tại
         if (targetList == null || targetList.isEmpty()) {
             targetList = taskViewModel.getCurrentFilter();
-            
-            // Nếu đang ở smart list (Today, Tomorrow, etc.), lưu vào Inbox
-            if (targetList.equals("Today") || targetList.equals("Tomorrow") || 
-                targetList.equals("Next 7 Days") || targetList.equals("All") || 
-                targetList.equals("Assigned to Me") || targetList.equals("Completed") || 
+            if (targetList.equals("Today") || targetList.equals("Tomorrow") ||
+                targetList.equals("Next 7 Days") || targetList.equals("All") ||
+                targetList.equals("Assigned to Me") || targetList.equals("Completed") ||
                 targetList.equals("Won't Do") || targetList.equals("Welcome")) {
                 targetList = "Inbox";
             }
         }
-        
+
         android.util.Log.d("DATABASE", "Adding task: " + title + " | Emoji: " + emoji + " | List: " + targetList);
         TaskEntity taskEntity = new TaskEntity(
-            title,
-            description,
-            emoji,
-            false,
-            targetList,
-            0,
-            System.currentTimeMillis(),
-            dueDate
+            title, description, emoji, false, targetList, 0,
+            System.currentTimeMillis(), startDate, dueDate
         );
-        
-        // Use insertAndGetId to schedule reminder with actual task ID
+
         final Long finalDueDate = dueDate;
         final String finalEmoji = emoji;
         taskViewModel.insertAndGetId(taskEntity, taskId -> {

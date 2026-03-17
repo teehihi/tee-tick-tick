@@ -15,10 +15,11 @@ public class TaskEntity {
     private String listName;
     private int priority;
     private long createdAt;
-    private Long dueDate;
+    private Long startDate;  // user-selected start datetime
+    private Long dueDate;    // user-selected end/deadline datetime
 
-    public TaskEntity(String title, String description, String emoji, boolean isCompleted, 
-                      String listName, int priority, long createdAt, Long dueDate) {
+    public TaskEntity(String title, String description, String emoji, boolean isCompleted,
+                      String listName, int priority, long createdAt, Long startDate, Long dueDate) {
         this.title = title;
         this.description = description;
         this.emoji = emoji;
@@ -26,6 +27,7 @@ public class TaskEntity {
         this.listName = listName;
         this.priority = priority;
         this.createdAt = createdAt;
+        this.startDate = startDate;
         this.dueDate = dueDate;
     }
 
@@ -92,6 +94,14 @@ public class TaskEntity {
 
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Long getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Long startDate) {
+        this.startDate = startDate;
     }
 
     public Long getDueDate() {

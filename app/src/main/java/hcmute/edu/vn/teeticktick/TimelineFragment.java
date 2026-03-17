@@ -113,6 +113,8 @@ public class TimelineFragment extends Fragment {
         });
         binding.btnZoomOut.setOnClickListener(v -> {
             currentColumnWidthDp = Math.max(currentColumnWidthDp - 30, COLUMN_WIDTH_DP_MIN);
+            // Don't go below screen-fill size visually (effectiveColumnWidthDp handles display,
+            // but reset currentColumnWidthDp to min-fill so zoom out stops at natural fit)
             refreshTimeline();
         });
 
@@ -136,6 +138,16 @@ public class TimelineFragment extends Fragment {
     }
 
     // ── Refresh ───────────────────────────────────────────────────────────────
+
+    /** Returns the actual column width in dp, never smaller than screen-fill size. */
+    private int effectiveColumnWidthDp() {
+        int scrollViewWidthPx = binding.ganttHorizontalScroll.getWidth();
+        // Subtract sidebar width
+        int sidebarWidthPx = binding.sidebarLabels.getWidth();
+        int availablePx = scrollViewWidthPx > 0 ? scrollViewWidthPx : dpToPx(currentColumnWidthDp * NUM_DAYS);
+        int minColDp = (int)((availablePx) / requireContext().getResources().getDisplayMetrics().density / NUM_DAYS);
+        return Math.max(currentColumnWidthDp, minColDp);
+    }
 
     private void refreshTimeline() {
         updateWeekLabel();
@@ -165,7 +177,7 @@ public class TimelineFragment extends Fragment {
         int todayYear   = today.get(Calendar.YEAR);
         int todayDoy    = today.get(Calendar.DAY_OF_YEAR);
 
-        int colPx = dpToPx(currentColumnWidthDp);
+        int colPx = dpToPx(effectiveColumnWidthDp());
 
         for (int i = 0; i < NUM_DAYS; i++) {
             boolean isToday = cal.get(Calendar.YEAR) == todayYear
@@ -251,8 +263,9 @@ public class TimelineFragment extends Fragment {
         boolean anyVisible = false;
         for (TaskEntity task : allTasks) {
             if (task.getDueDate() == null) continue;
-            long taskStart = task.getCreatedAt();
             long taskEnd   = task.getDueDate();
+            // Use startDate if set, otherwise fall back to start of dueDate day
+            long taskStart = task.getStartDate() != null ? task.getStartDate() : startOfDay(taskEnd);
             if (taskEnd <= weekStartMs || taskStart >= weekEndMs) continue;
 
             String key = task.getListName();
@@ -261,12 +274,12 @@ public class TimelineFragment extends Fragment {
             anyVisible = true;
         }
 
-        // Sort tasks by createdAt time within each category
+        // Sort tasks by dueDate within each category
         for (List<TaskEntity> taskList : grouped.values()) {
-            taskList.sort((t1, t2) -> Long.compare(t1.getCreatedAt(), t2.getCreatedAt()));
+            taskList.sort((t1, t2) -> Long.compare(t1.getDueDate(), t2.getDueDate()));
         }
 
-        int colPx = dpToPx(currentColumnWidthDp);
+        int colPx = dpToPx(effectiveColumnWidthDp());
         for (int i = 0; i < listKeys.length; i++) {
             placeSpannedBars(gridRows[i], grouped.get(listKeys[i]),
                     weekStartMs, dayMs, colPx, i);
@@ -291,7 +304,7 @@ public class TimelineFragment extends Fragment {
         int textColor   = CATEGORY_BAR_TEXT[categoryIdx];
         int strokeColor = CATEGORY_BAR_STROKE[categoryIdx];
 
-        boolean showTimeMode = currentColumnWidthDp >= 110;  // 1 hour = colPx/24, show time when ≥ ~4.5dp/hr
+        boolean showTimeMode = effectiveColumnWidthDp() >= 110;
         int rowH      = row.getHeight() > 0 ? row.getHeight() : dpToPx(72);
         int barH      = showTimeMode ? dpToPx(36) : dpToPx(24);
         int stackStep = barH + dpToPx(4);
@@ -300,8 +313,8 @@ public class TimelineFragment extends Fragment {
         Map<Integer, Integer> dayTotalCount = new HashMap<>();
         for (TaskEntity task : tasks) {
             if (task.getDueDate() == null) continue;
-            long taskStartMs = task.getCreatedAt();
             long taskEndMs   = task.getDueDate();
+            long taskStartMs = task.getStartDate() != null ? task.getStartDate() : startOfDay(taskEndMs);
             if (taskEndMs <= weekStartMs || taskStartMs >= weekStartMs + NUM_DAYS * dayMs) continue;
             long visStart = Math.max(taskStartMs, weekStartMs);
             int dayCol = (int)((visStart - weekStartMs) / dayMs);
@@ -315,8 +328,8 @@ public class TimelineFragment extends Fragment {
         for (TaskEntity task : tasks) {
             if (task.getDueDate() == null) continue;
 
-            long taskStartMs = task.getCreatedAt();
             long taskEndMs   = task.getDueDate();
+            long taskStartMs = task.getStartDate() != null ? task.getStartDate() : startOfDay(taskEndMs);
             if (taskEndMs <= weekStartMs || taskStartMs >= weekStartMs + NUM_DAYS * dayMs) continue;
 
             // Clamp to visible week window
@@ -324,23 +337,44 @@ public class TimelineFragment extends Fragment {
             long visEnd   = Math.min(taskEndMs, weekStartMs + NUM_DAYS * dayMs);
             if (visEnd <= visStart) continue;
 
-            // Day column of the start position
+            // Day column based on which calendar day the task starts
             int startDayCol = (int) ((visStart - weekStartMs) / dayMs);
             startDayCol = Math.max(0, Math.min(startDayCol, NUM_DAYS - 1));
 
-            // Hour fraction within the start day (0.0 = 00:00, 1.0 = 24:00)
             long dayStartMs = weekStartMs + (long) startDayCol * dayMs;
-            float startFraction = (float)(visStart - dayStartMs) / dayMs;
+            long dayEndMs   = dayStartMs + dayMs;
+            boolean sameDay = visEnd <= dayEndMs;
 
-            // Duration as fraction of a day (can span multiple days)
-            float durationFraction = (float)(visEnd - visStart) / dayMs;
-            // Cap width at remaining days in view
-            float maxFraction = NUM_DAYS - startDayCol - startFraction;
-            durationFraction = Math.min(durationFraction, maxFraction);
-            durationFraction = Math.max(durationFraction, 1f / 24f); // min 1 hour width
+            // Hour-based positioning only when zoomed in enough (≥ 200dp/col)
+            boolean useHourPosition = effectiveColumnWidthDp() >= 200;
 
-            int leftPx   = (int)(startDayCol * colPx + startFraction * colPx) + dpToPx(2);
-            int barWidth = Math.max((int)(durationFraction * colPx) - dpToPx(4), dpToPx(48));
+            float startFraction = useHourPosition
+                    ? (float)(visStart - dayStartMs) / dayMs
+                    : 0f;
+
+            // Duration fraction
+            float durationFraction;
+            if (sameDay) {
+                // Same-day: fill from startFraction to end of task, capped at column boundary
+                float endFraction = useHourPosition
+                        ? (float)(visEnd - dayStartMs) / dayMs
+                        : 1f;
+                durationFraction = endFraction - startFraction;
+            } else {
+                durationFraction = (float)(visEnd - visStart) / dayMs;
+                float maxFraction = NUM_DAYS - startDayCol - startFraction;
+                durationFraction = Math.min(durationFraction, maxFraction);
+            }
+            durationFraction = Math.max(durationFraction, 1f / 24f);
+
+            int leftPx  = (int)(startDayCol * colPx + startFraction * colPx) + dpToPx(2);
+            // barWidth: for same-day tasks, hard-cap at column right edge minus padding
+            int maxBarWidth = sameDay
+                    ? (int)((1f - startFraction) * colPx) - dpToPx(4)
+                    : (int)(durationFraction * colPx) - dpToPx(4);
+            int barWidth = Math.max(Math.min((int)(durationFraction * colPx) - dpToPx(4), maxBarWidth), dpToPx(48));
+            // Final safety clamp
+            if (sameDay) barWidth = Math.min(barWidth, maxBarWidth);
 
             // Stack: count tasks already placed on the start day
             int stack = dayStackCount.containsKey(startDayCol) ? dayStackCount.get(startDayCol) : 0;
@@ -527,24 +561,28 @@ public class TimelineFragment extends Fragment {
         SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
         SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
-        long taskStartMs = task.getCreatedAt();
-        long taskEndMs   = task.getDueDate() != null ? task.getDueDate() : taskStartMs;
+        long taskEndMs   = task.getDueDate() != null ? task.getDueDate() : task.getCreatedAt();
+        Long startDate   = task.getStartDate();
 
-        boolean multiDay = startOfDay(taskEndMs) > startOfDay(taskStartMs);
-        if (multiDay) {
-            return dateFmt.format(new Date(taskStartMs)) + " " + timeFmt.format(new Date(taskStartMs))
-                 + " – " + dateFmt.format(new Date(taskEndMs)) + " " + timeFmt.format(new Date(taskEndMs));
-        } else {
-            return dateFmt.format(new Date(taskStartMs))
-                 + "  " + timeFmt.format(new Date(taskStartMs))
-                 + " – " + timeFmt.format(new Date(taskEndMs));
+        if (startDate != null) {
+            boolean multiDay = startOfDay(taskEndMs) > startOfDay(startDate);
+            if (multiDay) {
+                return dateFmt.format(new Date(startDate)) + " " + timeFmt.format(new Date(startDate))
+                     + " – " + dateFmt.format(new Date(taskEndMs)) + " " + timeFmt.format(new Date(taskEndMs));
+            } else {
+                return dateFmt.format(new Date(startDate))
+                     + "  " + timeFmt.format(new Date(startDate))
+                     + " – " + timeFmt.format(new Date(taskEndMs));
+            }
         }
+        // No start date — just show deadline
+        return dateFmt.format(new Date(taskEndMs)) + "  " + timeFmt.format(new Date(taskEndMs));
     }
 
     // ── Column Dividers ───────────────────────────────────────────────────────
 
     private void addColumnDividers(FrameLayout row) {
-        int colPx = dpToPx(currentColumnWidthDp);
+        int colPx = dpToPx(effectiveColumnWidthDp());
         for (int i = 1; i < NUM_DAYS; i++) {
             View div = new View(requireContext());
             FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(dpToPx(1), ViewGroup.LayoutParams.MATCH_PARENT);

@@ -420,14 +420,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAddTaskDialog() {
         AddTaskBottomSheet bottomSheet = new AddTaskBottomSheet();
-        bottomSheet.setOnTaskAddedListener((title, description, emoji, listName, dueDate) -> 
-            addTaskToFragment(title, description, emoji, listName, dueDate)
+        bottomSheet.setOnTaskAddedListener((title, description, emoji, listName, startDate, dueDate) ->
+            addTaskToFragment(title, description, emoji, listName, startDate, dueDate)
         );
-        
-        // Hide toolbar and FAB to prevent overlapping bottom sheet
         binding.toolbar.setVisibility(View.INVISIBLE);
         binding.fab.setVisibility(View.INVISIBLE);
-        
         bottomSheet.show(getSupportFragmentManager(), "AddTaskBottomSheet");
     }
     
@@ -437,12 +434,12 @@ public class MainActivity extends AppCompatActivity {
         binding.fab.setVisibility(View.VISIBLE);
     }
 
-    private void addTaskToFragment(String title, String description, String emoji, String listName, Long dueDate) {
+    private void addTaskToFragment(String title, String description, String emoji, String listName, Long startDate, Long dueDate) {
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
         if (navHostFragment != null) {
             Fragment currentFragment = navHostFragment.getChildFragmentManager().getFragments().get(0);
             if (currentFragment instanceof FirstFragment) {
-                ((FirstFragment) currentFragment).addTask(title, description, emoji, listName, dueDate);
+                ((FirstFragment) currentFragment).addTask(title, description, emoji, listName, startDate, dueDate);
             }
         }
     }
