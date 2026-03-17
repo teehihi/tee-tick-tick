@@ -59,13 +59,12 @@
             android:paddingTop="14dp"
             android:paddingBottom="14dp">
 
-            <CheckBox
+            <Switch
                 android:id="@+id/checkbox_task"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:background="@null"
-                android:button="@null"
-                android:drawableStart="@drawable/custom_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:thumb="@drawable/toggle_thumb"
+                android:track="@drawable/toggle_track"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />

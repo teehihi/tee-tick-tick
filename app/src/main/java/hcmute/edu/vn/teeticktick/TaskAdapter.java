@@ -6,7 +6,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -43,6 +43,8 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
         holder.textViewTitle.setText(task.getTitle());
+        
+        holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setChecked(task.isCompleted());
 
         // Show emoji if available
@@ -78,7 +80,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     }
 
     static class TaskViewHolder extends RecyclerView.ViewHolder {
-        CheckBox checkBox;
+        Switch checkBox;
         TextView textViewTitle;
         TextView taskEmoji;
         CardView foregroundCard;

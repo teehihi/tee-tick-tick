@@ -40,7 +40,12 @@ public class TimelineFragment extends Fragment {
     private TaskViewModel taskViewModel;
 
     private static final int NUM_DAYS      = 7;
-    private static final int COLUMN_WIDTH_DP = 88;
+    private static final int COLUMN_WIDTH_DP_MIN = 60;
+    private static final int COLUMN_WIDTH_DP_DEFAULT = 88;
+    private static final int COLUMN_WIDTH_DP_MAX = 150;
+    
+    // Current zoom level (column width)
+    private int currentColumnWidthDp = COLUMN_WIDTH_DP_DEFAULT;
 
     // Week offset from current week
     private int weekOffset = 0;
@@ -99,6 +104,19 @@ public class TimelineFragment extends Fragment {
         binding.btnPrevWeek.setOnClickListener(v -> { weekOffset--; refreshTimeline(); });
         binding.btnNextWeek.setOnClickListener(v -> { weekOffset++; refreshTimeline(); });
 
+        // Zoom controls
+        binding.btnZoomIn.setOnClickListener(v -> {
+            currentColumnWidthDp = Math.min(currentColumnWidthDp + 10, COLUMN_WIDTH_DP_MAX);
+            refreshTimeline();
+        });
+        binding.btnZoomOut.setOnClickListener(v -> {
+            currentColumnWidthDp = Math.max(currentColumnWidthDp - 10, COLUMN_WIDTH_DP_MIN);
+            refreshTimeline();
+        });
+
+        // Setup pinch-to-zoom on the horizontal scroll view
+        setupPinchToZoom();
+
         taskViewModel.getAllTasks().observe(getViewLifecycleOwner(), tasks -> {
             if (tasks != null) { cachedTasks = tasks; refreshTimeline(); }
         });
@@ -134,7 +152,7 @@ public class TimelineFragment extends Fragment {
         int todayYear   = today.get(Calendar.YEAR);
         int todayDoy    = today.get(Calendar.DAY_OF_YEAR);
 
-        int colPx = dpToPx(COLUMN_WIDTH_DP);
+        int colPx = dpToPx(currentColumnWidthDp);
 
         for (int i = 0; i < NUM_DAYS; i++) {
             boolean isToday = cal.get(Calendar.YEAR) == todayYear
@@ -230,7 +248,12 @@ public class TimelineFragment extends Fragment {
             anyVisible = true;
         }
 
-        int colPx = dpToPx(COLUMN_WIDTH_DP);
+        // Sort tasks by createdAt time within each category
+        for (List<TaskEntity> taskList : grouped.values()) {
+            taskList.sort((t1, t2) -> Long.compare(t1.getCreatedAt(), t2.getCreatedAt()));
+        }
+
+        int colPx = dpToPx(currentColumnWidthDp);
         for (int i = 0; i < listKeys.length; i++) {
             placeSpannedBars(gridRows[i], grouped.get(listKeys[i]),
                     weekStartMs, dayMs, colPx, i);
@@ -252,10 +275,11 @@ public class TimelineFragment extends Fragment {
         int textColor   = CATEGORY_BAR_TEXT[categoryIdx];
         int strokeColor = CATEGORY_BAR_STROKE[categoryIdx];
 
-        int barH      = dpToPx(28);
+        int barH      = dpToPx(26);
         int rowH      = dpToPx(72);
-        int stackStep = dpToPx(32);
+        int stackStep = dpToPx(30);
 
+        // Track which columns have tasks to manage stacking
         Map<Integer, Integer> stackCount = new HashMap<>();
 
         for (TaskEntity task : tasks) {
@@ -272,10 +296,21 @@ public class TimelineFragment extends Fragment {
             int spanDays = (int) Math.ceil((double)(visEnd - visStart) / dayMs);
             spanDays = Math.max(1, Math.min(spanDays, NUM_DAYS - startCol));
 
-            int stack = stackCount.containsKey(startCol) ? stackCount.get(startCol) : 0;
-            stackCount.put(startCol, stack + 1);
+            // Find the lowest available stack position for this task
+            int stack = 0;
+            for (int col = startCol; col < startCol + spanDays; col++) {
+                int colStack = stackCount.containsKey(col) ? stackCount.get(col) : 0;
+                stack = Math.max(stack, colStack);
+            }
 
-            int topMargin = (rowH - barH) / 2 + stack * stackStep;
+            // Update stack count for all columns this task spans
+            for (int col = startCol; col < startCol + spanDays; col++) {
+                stackCount.put(col, stack + 1);
+            }
+
+            int topMargin = dpToPx(8) + stack * stackStep;
+            
+            // Skip if task would overflow the row
             if (topMargin + barH > rowH - dpToPx(4)) continue;
 
             int leftPx  = startCol * colPx + dpToPx(4);
@@ -285,17 +320,17 @@ public class TimelineFragment extends Fragment {
             TextView bar = new TextView(requireContext());
             bar.setText(buildLabel(task));
             bar.setTextColor(textColor);
-            bar.setTextSize(11.5f);
+            bar.setTextSize(11f);
             bar.setSingleLine(true);
             bar.setEllipsize(TextUtils.TruncateAt.END);
-            bar.setPaddingRelative(dpToPx(10), 0, dpToPx(10), 0);
+            bar.setPaddingRelative(dpToPx(8), dpToPx(2), dpToPx(8), dpToPx(2));
             bar.setGravity(Gravity.CENTER_VERTICAL);
             bar.setIncludeFontPadding(false);
 
             // Rounded pill drawable with slight stroke
             android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
             shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-            shape.setCornerRadius(dpToPx(14));
+            shape.setCornerRadius(dpToPx(13));
             shape.setColor(bgColor);
             shape.setStroke(dpToPx(1), strokeColor);
             bar.setBackground(shape);
@@ -326,7 +361,7 @@ public class TimelineFragment extends Fragment {
     // ── Column Dividers ───────────────────────────────────────────────────────
 
     private void addColumnDividers(FrameLayout row) {
-        int colPx = dpToPx(COLUMN_WIDTH_DP);
+        int colPx = dpToPx(currentColumnWidthDp);
         for (int i = 1; i < NUM_DAYS; i++) {
             View div = new View(requireContext());
             FrameLayout.LayoutParams p = new FrameLayout.LayoutParams(dpToPx(1), ViewGroup.LayoutParams.MATCH_PARENT);
@@ -335,6 +370,70 @@ public class TimelineFragment extends Fragment {
             div.setBackgroundColor(0xFFE5E5EA);
             row.addView(div);
         }
+    }
+
+    // ── Pinch to Zoom ─────────────────────────────────────────────────────────
+
+    private void setupPinchToZoom() {
+        final android.view.ScaleGestureDetector scaleDetector = new android.view.ScaleGestureDetector(
+                requireContext(),
+                new android.view.ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                    private float lastScaleFactor = 1.0f;
+                    
+                    @Override
+                    public boolean onScaleBegin(android.view.ScaleGestureDetector detector) {
+                        lastScaleFactor = 1.0f;
+                        return true;
+                    }
+                    
+                    @Override
+                    public boolean onScale(android.view.ScaleGestureDetector detector) {
+                        float scaleFactor = detector.getScaleFactor();
+                        
+                        // Accumulate scale changes
+                        lastScaleFactor *= scaleFactor;
+                        
+                        // Apply zoom with smoothing
+                        int newWidth = (int) (currentColumnWidthDp * lastScaleFactor);
+                        newWidth = Math.max(COLUMN_WIDTH_DP_MIN, Math.min(newWidth, COLUMN_WIDTH_DP_MAX));
+                        
+                        if (Math.abs(newWidth - currentColumnWidthDp) >= 5) {
+                            currentColumnWidthDp = newWidth;
+                            lastScaleFactor = 1.0f;
+                            refreshTimeline();
+                        }
+                        return true;
+                    }
+                }
+        );
+
+        final android.view.GestureDetector gestureDetector = new android.view.GestureDetector(
+                requireContext(),
+                new android.view.GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onScroll(android.view.MotionEvent e1, android.view.MotionEvent e2,
+                                          float distanceX, float distanceY) {
+                        // Allow normal scrolling
+                        return false;
+                    }
+                }
+        );
+
+        binding.ganttHorizontalScroll.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                // Handle pinch gesture
+                scaleDetector.onTouchEvent(event);
+                
+                // If it's a multi-touch gesture (pinch), consume the event
+                if (event.getPointerCount() > 1) {
+                    return true;
+                }
+                
+                // Otherwise, allow normal scrolling
+                return false;
+            }
+        });
     }
 
     // ── Options Menu (filter icon in toolbar) ────────────────────────────────
@@ -368,15 +467,15 @@ public class TimelineFragment extends Fragment {
             
             View dot = itemView.findViewById(R.id.item_category_dot);
             TextView name = itemView.findViewById(R.id.item_category_name);
-            CheckBox cb = itemView.findViewById(R.id.item_category_checkbox);
+            android.widget.Switch toggle = itemView.findViewById(R.id.item_category_toggle);
             
             dot.setBackgroundTintList(android.content.res.ColorStateList.valueOf(CATEGORY_BAR_STROKE[i]));
             name.setText(CATEGORY_LABELS[i]);
-            cb.setChecked(tempChecked[i]);
+            toggle.setChecked(tempChecked[i]);
             
             itemView.setOnClickListener(v -> {
                 tempChecked[index] = !tempChecked[index];
-                cb.setChecked(tempChecked[index]);
+                toggle.setChecked(tempChecked[index]);
             });
             
             container.addView(itemView);

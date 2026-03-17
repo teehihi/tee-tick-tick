@@ -14,23 +14,38 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="#FFFFFF"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
         android:elevation="2dp">
 
         <!-- Prev week: iOS chevron -->
         <TextView
             android:id="@+id/btn_prev_week"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:gravity="center"
             android:text="‹"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textColor="#007AFF"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:includeFontPadding="false"
             android:clickable="true"
             android:focusable="true" />
+
+        <!-- Zoom out -->
+        <TextView
+            android:id="@+id/btn_zoom_out"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:text="🔍−"
+            android:textSize="11sp"
+            android:textColor="#007AFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:includeFontPadding="false"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginStart="2dp" />
 
         <!-- Week label -->
         <TextView
@@ -43,16 +58,33 @@
             android:textSize="15sp"
             android:textStyle="bold"
             android:letterSpacing="-0.02"
-            android:text="Mar 10 – Mar 16" />
+            android:text="Mar 10 – Mar 16"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp" />
+
+        <!-- Zoom in -->
+        <TextView
+            android:id="@+id/btn_zoom_in"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:gravity="center"
+            android:text="🔍+"
+            android:textSize="11sp"
+            android:textColor="#007AFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:includeFontPadding="false"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="2dp" />
 
         <!-- Next week: iOS chevron -->
         <TextView
             android:id="@+id/btn_next_week"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:gravity="center"
             android:text="›"
-            android:textSize="28sp"
+            android:textSize="24sp"
             android:textColor="#007AFF"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:includeFontPadding="false"

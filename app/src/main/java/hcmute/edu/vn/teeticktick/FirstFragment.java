@@ -68,18 +68,7 @@ public class FirstFragment extends Fragment {
         adapter.setOnTaskCheckedChangeListener((task, isChecked) -> {
             // Cập nhật trạng thái completed trong database
             if (task.getId() > 0) {
-                TaskEntity taskEntity = new TaskEntity(
-                    task.getTitle(),
-                    "",
-                    task.getEmoji(),
-                    isChecked,
-                    taskViewModel.getCurrentFilter(),
-                    0,
-                    System.currentTimeMillis(),
-                    null
-                );
-                taskEntity.setId(task.getId());
-                taskViewModel.update(taskEntity);
+                taskViewModel.updateTaskStatus(task.getId(), isChecked);
                 android.util.Log.d("DATABASE", "Updated task completed status: " + task.getTitle() + " = " + isChecked);
                 
                 // Cancel reminder when task is completed

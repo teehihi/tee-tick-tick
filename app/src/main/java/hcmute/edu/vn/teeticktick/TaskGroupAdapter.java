@@ -4,7 +4,7 @@ import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.Switch;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -121,7 +121,7 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     class TaskViewHolder extends RecyclerView.ViewHolder {
-        CheckBox checkBox;
+        Switch checkBox;
         TextView emojiTextView;
         TextView titleTextView;
         androidx.cardview.widget.CardView foregroundCard;
@@ -158,6 +158,8 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             }
             
             titleTextView.setText(task.getTitle());
+            
+            checkBox.setOnCheckedChangeListener(null);
             checkBox.setChecked(task.isCompleted());
 
             updateStrikeThrough(titleTextView, task.isCompleted());

@@ -34,6 +34,10 @@ public class TaskViewModel extends AndroidViewModel {
         repository.update(task);
     }
     
+    public void updateTaskStatus(int taskId, boolean isCompleted) {
+        repository.updateTaskStatus(taskId, isCompleted);
+    }
+    
     public void delete(TaskEntity task) {
         repository.delete(task);
     }

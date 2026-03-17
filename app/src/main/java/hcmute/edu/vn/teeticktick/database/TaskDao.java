@@ -18,6 +18,9 @@ public interface TaskDao {
     @Update
     void update(TaskEntity task);
     
+    @Query("UPDATE tasks SET isCompleted = :isCompleted WHERE id = :taskId")
+    void updateTaskStatus(int taskId, boolean isCompleted);
+    
     @Delete
     void delete(TaskEntity task);
     

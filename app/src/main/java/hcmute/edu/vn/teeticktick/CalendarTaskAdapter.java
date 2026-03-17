@@ -4,7 +4,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -98,6 +98,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
         holder.timeIndicator.setBackgroundColor(COLORS[colorIndex]);
         
         // Set checkbox
+        holder.taskCheckbox.setOnCheckedChangeListener(null); // Clear listener first
         holder.taskCheckbox.setChecked(task.isCompleted());
         holder.taskCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (checkedChangeListener != null) {
@@ -114,6 +115,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
     }
     
     private String getCategoryDisplayName(String category) {
+        if (category == null) return "";
         switch (category) {
             case "Work": return "Công việc";
             case "Personal": return "Cá nhân";
@@ -140,7 +142,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
         TextView taskTitle;
         TextView taskCategory;
         View timeIndicator;
-        CheckBox taskCheckbox;
+        Switch taskCheckbox; // Changed from CheckBox to Switch
 
         ViewHolder(View itemView) {
             super(itemView);
