@@ -62,23 +62,36 @@ public class NotificationHelper {
     @RequiresApi(api = Build.VERSION_CODES.O)
     private static void createCategoryChannel(Context context, NotificationManager manager, 
                                              String channelId, String channelName, String soundId) {
-        NotificationChannel channel = new NotificationChannel(
-                channelId,
-                channelName,
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        channel.setDescription("Thông báo cho " + channelName);
-        channel.enableVibration(true);
-        
-        // Set custom sound
-        Uri soundUri = hcmute.edu.vn.teeticktick.utils.NotificationSoundHelper.getSoundUri(context, soundId);
-        android.media.AudioAttributes audioAttributes = new android.media.AudioAttributes.Builder()
-                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
-                .build();
-        channel.setSound(soundUri, audioAttributes);
-        
-        manager.createNotificationChannel(channel);
+        try {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    channelName,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Thông báo cho " + channelName);
+            channel.enableVibration(true);
+            
+            // Set custom sound
+            Uri soundUri = hcmute.edu.vn.teeticktick.utils.NotificationSoundHelper.getSoundUri(context, soundId);
+            android.media.AudioAttributes audioAttributes = new android.media.AudioAttributes.Builder()
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                    .build();
+            channel.setSound(soundUri, audioAttributes);
+            
+            manager.createNotificationChannel(channel);
+        } catch (Exception e) {
+            android.util.Log.e("NotificationHelper", "Error creating channel: " + channelId, e);
+            // Create channel without custom sound as fallback
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    channelName,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Thông báo cho " + channelName);
+            channel.enableVibration(true);
+            manager.createNotificationChannel(channel);
+        }
     }
     
     public static String getChannelIdForCategory(String categoryName) {
