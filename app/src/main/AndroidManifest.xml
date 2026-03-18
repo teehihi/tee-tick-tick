@@ -31,6 +31,11 @@
             android:name=".SmartListSettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.TeeTickTick" />
+        
+        <activity
+            android:name=".DebugCategoryActivity"
+            android:exported="true"
+            android:theme="@style/Theme.TeeTickTick" />
 
         <service
             android:name=".service.DailyTaskService"

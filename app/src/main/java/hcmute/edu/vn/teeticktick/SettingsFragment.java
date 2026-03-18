@@ -69,5 +69,14 @@ public class SettingsFragment extends Fragment {
             Intent intent = new Intent(requireContext(), SmartListSettingsActivity.class);
             startActivity(intent);
         });
+        
+        // Debug Categories button (for testing)
+        View debugButton = view.findViewById(R.id.debug_categories_button);
+        if (debugButton != null) {
+            debugButton.setOnClickListener(v -> {
+                Intent intent = new Intent(requireContext(), DebugCategoryActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 }

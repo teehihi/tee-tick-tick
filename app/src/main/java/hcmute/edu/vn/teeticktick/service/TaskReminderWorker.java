@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -13,7 +14,9 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import hcmute.edu.vn.teeticktick.database.AppDatabase;
+import hcmute.edu.vn.teeticktick.database.CategoryEntity;
 import hcmute.edu.vn.teeticktick.database.TaskEntity;
+import hcmute.edu.vn.teeticktick.utils.NotificationSoundHelper;
 
 public class TaskReminderWorker extends Worker {
 
@@ -64,11 +67,42 @@ public class TaskReminderWorker extends Worker {
 
         // Send reminder notification
         String emoji = (taskEmoji != null && !taskEmoji.isEmpty()) ? taskEmoji : "⏰";
+        
+        // Get category name for channel selection
+        String categoryName = task.getListName();
+        Log.d(TAG, "Task listName: " + categoryName);
+        
+        // Get notification sound from category (for logging)
+        Uri soundUri = null;
+        if (categoryName != null) {
+            CategoryEntity category = database.categoryDao().getCategoryByNameSync(categoryName);
+            if (category != null) {
+                String soundId = category.getNotificationSound();
+                Log.d(TAG, "Category found: " + category.getName() + ", soundId: " + soundId);
+                
+                if (soundId != null) {
+                    soundUri = NotificationSoundHelper.getSoundUri(
+                        getApplicationContext(), 
+                        soundId
+                    );
+                    Log.d(TAG, "Sound URI: " + soundUri);
+                } else {
+                    Log.w(TAG, "Category has no notification sound set");
+                }
+            } else {
+                Log.w(TAG, "Category not found for listName: " + categoryName);
+            }
+        } else {
+            Log.w(TAG, "Task has no listName");
+        }
+        
         Notification notification = NotificationHelper.createReminderNotification(
                 getApplicationContext(),
                 taskTitle,
                 emoji,
-                "⏰ Task sắp đến hạn! Hãy hoàn thành ngay."
+                "⏰ Task sắp đến hạn! Hãy hoàn thành ngay.",
+                soundUri,
+                categoryName
         );
 
         NotificationManager manager = (NotificationManager) getApplicationContext()

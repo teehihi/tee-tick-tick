@@ -17,19 +17,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 import hcmute.edu.vn.teeticktick.R;
 import hcmute.edu.vn.teeticktick.utils.IconHelper;
+import hcmute.edu.vn.teeticktick.utils.NotificationSoundHelper;
 
 public class AddListBottomSheet extends BottomSheetDialogFragment {
 
     private EditText listNameInput;
     private ImageView emojiSelector; // Changed from TextView
+    private TextView soundSelector;
     private Button submitButton;     // Changed from addListButton
     private ImageView cancelButton;  // Changed from closeButton (Must be ImageView since XML has it as ImageView)
     
     private String selectedIconKey = "inbox"; // Changed from selectedEmoji = "📁"
+    private String selectedSoundId = "default";
     private OnListAddedListener listener;
 
     public interface OnListAddedListener {
-        void onListAdded(String listName, String iconKey); // Changed 'emoji' to 'iconKey'
+        void onListAdded(String listName, String iconKey, String soundId);
     }
 
     public void setOnListAddedListener(OnListAddedListener listener) {
@@ -52,11 +55,13 @@ public class AddListBottomSheet extends BottomSheetDialogFragment {
         listNameInput.requestFocus();
         emojiSelector.setImageResource(IconHelper.getIconDrawable(selectedIconKey));
         emojiSelector.setColorFilter(IconHelper.getIconColor(selectedIconKey));
+        updateSoundDisplay();
     }
 
     private void initViews(View view) {
         listNameInput = view.findViewById(R.id.list_name_input);
         emojiSelector = view.findViewById(R.id.emoji_selector);
+        soundSelector = view.findViewById(R.id.sound_selector);
         cancelButton = view.findViewById(R.id.close_button); // Renamed closeButton to cancelButton
         submitButton = view.findViewById(R.id.add_list_button); // Renamed addListButton to submitButton
     }
@@ -75,6 +80,17 @@ public class AddListBottomSheet extends BottomSheetDialogFragment {
             iconPicker.show(getParentFragmentManager(), "CategoryIconPicker"); // Changed tag
         });
         
+        // Sound selector - open sound picker
+        soundSelector.setOnClickListener(v -> {
+            SoundPickerBottomSheet soundPicker = new SoundPickerBottomSheet();
+            soundPicker.setCurrentSound(selectedSoundId);
+            soundPicker.setOnSoundSelectedListener(soundId -> {
+                selectedSoundId = soundId;
+                updateSoundDisplay();
+            });
+            soundPicker.show(getParentFragmentManager(), "SoundPicker");
+        });
+        
         // Add list button
         submitButton.setOnClickListener(v -> { // Changed addListButton to submitButton
             String listName = listNameInput.getText().toString().trim(); // Changed 'name' to 'listName'
@@ -84,10 +100,15 @@ public class AddListBottomSheet extends BottomSheetDialogFragment {
             }
 
             if (listener != null) {
-                listener.onListAdded(listName, selectedIconKey); // Passed selectedIconKey
+                listener.onListAdded(listName, selectedIconKey, selectedSoundId);
             }
             dismiss();
         });
+    }
+
+    private void updateSoundDisplay() {
+        String soundName = NotificationSoundHelper.getSoundName(requireContext(), selectedSoundId);
+        soundSelector.setText(soundName);
     }
 
     @Override

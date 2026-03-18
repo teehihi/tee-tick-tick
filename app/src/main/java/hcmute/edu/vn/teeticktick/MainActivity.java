@@ -118,6 +118,9 @@ public class MainActivity extends AppCompatActivity {
         // Create notification channels
         NotificationHelper.createChannels(this);
         
+        // Update existing categories with notification sounds (migration)
+        hcmute.edu.vn.teeticktick.utils.DatabaseMigrationHelper.updateCategoriesWithSounds(this);
+        
         // Request notification permission (Android 13+)
         requestNotificationPermission();
         
@@ -310,8 +313,9 @@ public class MainActivity extends AppCompatActivity {
         // Add List button
         drawerView.findViewById(R.id.menu_add_list).setOnClickListener(v -> {
             hcmute.edu.vn.teeticktick.bottomsheet.AddListBottomSheet addListBottomSheet = new hcmute.edu.vn.teeticktick.bottomsheet.AddListBottomSheet();
-            addListBottomSheet.setOnListAddedListener((listName, emoji) -> {
+            addListBottomSheet.setOnListAddedListener((listName, emoji, soundId) -> {
                 CategoryEntity newCategory = new CategoryEntity(listName, emoji, null);
+                newCategory.setNotificationSound(soundId);
                 categoryViewModel.insert(newCategory);
                 android.widget.Toast.makeText(this, "Đã thêm danh sách " + listName, android.widget.Toast.LENGTH_SHORT).show();
             });

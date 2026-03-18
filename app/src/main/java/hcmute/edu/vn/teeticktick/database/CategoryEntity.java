@@ -11,11 +11,13 @@ public class CategoryEntity {
     private String name;
     private String emoji;
     private String systemId; // To identify default categories like Inbox, Work
+    private String notificationSound; // URI or resource name for custom notification sound
 
     public CategoryEntity(String name, String emoji, String systemId) {
         this.name = name;
         this.emoji = emoji;
         this.systemId = systemId;
+        this.notificationSound = null; // Default sound
     }
 
     public int getId() { return id; }
@@ -29,4 +31,7 @@ public class CategoryEntity {
     
     public String getSystemId() { return systemId; }
     public void setSystemId(String systemId) { this.systemId = systemId; }
+    
+    public String getNotificationSound() { return notificationSound; }
+    public void setNotificationSound(String notificationSound) { this.notificationSound = notificationSound; }
 }

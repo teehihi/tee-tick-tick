@@ -6,8 +6,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import hcmute.edu.vn.teeticktick.MainActivity;
@@ -17,12 +19,19 @@ public class NotificationHelper {
 
     public static final String CHANNEL_REMINDER = "task_reminder_channel";
     public static final String CHANNEL_DAILY = "daily_summary_channel";
+    
+    // Category-specific channels
+    public static final String CHANNEL_INBOX = "reminder_inbox";
+    public static final String CHANNEL_WORK = "reminder_work";
+    public static final String CHANNEL_PERSONAL = "reminder_personal";
+    public static final String CHANNEL_SHOPPING = "reminder_shopping";
+    public static final String CHANNEL_LEARNING = "reminder_learning";
 
     public static void createChannels(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager manager = context.getSystemService(NotificationManager.class);
 
-            // Channel for task deadline reminders
+            // Default reminder channel (for backward compatibility)
             NotificationChannel reminderChannel = new NotificationChannel(
                     CHANNEL_REMINDER,
                     "Nhắc nhở deadline",
@@ -31,6 +40,13 @@ public class NotificationHelper {
             reminderChannel.setDescription("Thông báo nhắc nhở khi task sắp đến hạn");
             reminderChannel.enableVibration(true);
             manager.createNotificationChannel(reminderChannel);
+            
+            // Create category-specific channels with custom sounds
+            createCategoryChannel(context, manager, CHANNEL_INBOX, "Nhắc nhở - Inbox", "default");
+            createCategoryChannel(context, manager, CHANNEL_WORK, "Nhắc nhở - Công việc", "sound_1");
+            createCategoryChannel(context, manager, CHANNEL_PERSONAL, "Nhắc nhở - Cá nhân", "sound_2");
+            createCategoryChannel(context, manager, CHANNEL_SHOPPING, "Nhắc nhở - Mua sắm", "sound_3");
+            createCategoryChannel(context, manager, CHANNEL_LEARNING, "Nhắc nhở - Học tập", "sound_4");
 
             // Channel for daily summary (foreground service)
             NotificationChannel dailyChannel = new NotificationChannel(
@@ -42,23 +58,73 @@ public class NotificationHelper {
             manager.createNotificationChannel(dailyChannel);
         }
     }
+    
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private static void createCategoryChannel(Context context, NotificationManager manager, 
+                                             String channelId, String channelName, String soundId) {
+        NotificationChannel channel = new NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        channel.setDescription("Thông báo cho " + channelName);
+        channel.enableVibration(true);
+        
+        // Set custom sound
+        Uri soundUri = hcmute.edu.vn.teeticktick.utils.NotificationSoundHelper.getSoundUri(context, soundId);
+        android.media.AudioAttributes audioAttributes = new android.media.AudioAttributes.Builder()
+                .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+                .build();
+        channel.setSound(soundUri, audioAttributes);
+        
+        manager.createNotificationChannel(channel);
+    }
+    
+    public static String getChannelIdForCategory(String categoryName) {
+        if (categoryName == null) {
+            return CHANNEL_REMINDER;
+        }
+        
+        switch (categoryName.toLowerCase()) {
+            case "inbox":
+                return CHANNEL_INBOX;
+            case "work":
+                return CHANNEL_WORK;
+            case "personal":
+                return CHANNEL_PERSONAL;
+            case "shopping":
+                return CHANNEL_SHOPPING;
+            case "learning":
+                return CHANNEL_LEARNING;
+            default:
+                return CHANNEL_REMINDER;
+        }
+    }
 
-    public static Notification createReminderNotification(Context context, String title, String emoji, String message) {
+    public static Notification createReminderNotification(Context context, String title, String emoji, 
+                                                         String message, Uri soundUri, String categoryName) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
-        return new NotificationCompat.Builder(context, CHANNEL_REMINDER)
+        // Get appropriate channel for category
+        String channelId = getChannelIdForCategory(categoryName);
+        
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(emoji + " " + title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
-                .build();
+                .setDefaults(NotificationCompat.DEFAULT_VIBRATE | NotificationCompat.DEFAULT_LIGHTS);
+        
+        // Note: Sound is set in channel, not here
+        
+        return builder.build();
     }
 
     public static Notification createDailySummaryNotification(Context context, int taskCount) {
