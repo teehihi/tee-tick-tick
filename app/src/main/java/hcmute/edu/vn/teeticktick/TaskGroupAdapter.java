@@ -120,20 +120,12 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-    class TaskViewHolder extends RecyclerView.ViewHolder {
+    public class TaskViewHolder extends RecyclerView.ViewHolder {
         CheckBox checkBox;
         TextView emojiTextView;
         TextView titleTextView;
         androidx.cardview.widget.CardView foregroundCard;
         LinearLayout deleteButton;
-        
-        private float dX = 0f;
-        private float startX = 0f;
-        private boolean isSwiping = false;
-        private boolean isOpen = false;
-        private static final int SWIPE_DISTANCE_DP = 80;
-        private float openPosition;
-        private float swipeThreshold;
 
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -142,11 +134,6 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             titleTextView = itemView.findViewById(R.id.textview_task_title);
             foregroundCard = itemView.findViewById(R.id.task_card_foreground);
             deleteButton = itemView.findViewById(R.id.delete_button);
-            
-            // Convert dp to pixels
-            float density = itemView.getContext().getResources().getDisplayMetrics().density;
-            openPosition = -SWIPE_DISTANCE_DP * density;
-            swipeThreshold = openPosition / 2;
         }
 
         public void bind(Task task) {
@@ -156,167 +143,30 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             } else {
                 emojiTextView.setVisibility(View.GONE);
             }
-            
+
             titleTextView.setText(task.getTitle());
-            
+
             checkBox.setOnCheckedChangeListener(null);
             checkBox.setChecked(task.isCompleted());
-
             updateStrikeThrough(titleTextView, task.isCompleted());
 
             checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 task.setCompleted(isChecked);
                 updateStrikeThrough(titleTextView, isChecked);
-                // Gọi callback để cập nhật database
                 if (checkedChangeListener != null) {
                     checkedChangeListener.onTaskCheckedChange(task, isChecked);
                 }
             });
-            
-            // Reset card position
-            foregroundCard.setX(0);
-            isOpen = false;
-            
-            // Setup click listener for task title
+
+            // Reset translation (important after swipe cancel / view recycling)
+            itemView.setTranslationX(0);
+            if (foregroundCard != null) foregroundCard.setTranslationX(0);
+            // Clear any lingering swipe-peek click listener
+            itemView.setOnClickListener(null);
+
             titleTextView.setOnClickListener(v -> {
-                if (clickListener != null && !isOpen) {
-                    clickListener.onTaskClick(task);
-                }
+                if (clickListener != null) clickListener.onTaskClick(task);
             });
-            
-            // Setup swipe gesture
-            setupSwipeGesture();
-            
-            // Setup delete button
-            deleteButton.setOnClickListener(v -> {
-                animateCardOut(foregroundCard, () -> {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        // Gọi callback để xóa khỏi database
-                        if (deleteListener != null) {
-                            deleteListener.onTaskDelete(task, position);
-                        }
-                        items.remove(position);
-                        notifyItemRemoved(position);
-                    }
-                });
-            });
-        }
-
-        private void setupSwipeGesture() {
-            foregroundCard.setOnTouchListener((v, event) -> {
-                switch (event.getAction()) {
-                    case android.view.MotionEvent.ACTION_DOWN:
-                        startX = event.getRawX();
-                        dX = v.getX() - event.getRawX();
-                        isSwiping = false;
-                        return true;
-
-                    case android.view.MotionEvent.ACTION_MOVE:
-                        float deltaX = event.getRawX() - startX;
-                        
-                        // Detect swipe
-                        if (Math.abs(deltaX) > 10) {
-                            isSwiping = true;
-                        }
-                        
-                        if (isSwiping) {
-                            float newX = event.getRawX() + dX;
-                            
-                            // Allow free swiping left (no limit)
-                            if (isOpen) {
-                                // When open, allow swiping right to close or left to delete
-                                if (newX <= 0) {
-                                    v.setX(newX);
-                                }
-                            } else {
-                                // When closed, allow swiping left freely
-                                if (newX <= 0) {
-                                    v.setX(newX);
-                                }
-                            }
-                        }
-                        return true;
-
-                    case android.view.MotionEvent.ACTION_UP:
-                        if (isSwiping) {
-                            float currentX = v.getX();
-                            float cardWidth = v.getWidth();
-                            float deleteThreshold = -cardWidth / 2; // Half of card width
-                            
-                            if (currentX < deleteThreshold) {
-                                // Swiped more than half - delete the item
-                                animateCardOut(v, () -> {
-                                    int position = getAdapterPosition();
-                                    if (position != RecyclerView.NO_POSITION) {
-                                        Task taskToDelete = (Task) items.get(position);
-                                        // Gọi callback để xóa khỏi database
-                                        if (deleteListener != null) {
-                                            deleteListener.onTaskDelete(taskToDelete, position);
-                                        }
-                                        items.remove(position);
-                                        notifyItemRemoved(position);
-                                    }
-                                });
-                            } else if (isOpen) {
-                                // If open, check if swiping right to close
-                                if (currentX > openPosition + 30) {
-                                    closeCard(v);
-                                } else {
-                                    openCard(v);
-                                }
-                            } else {
-                                // If closed, check if swiping left to open
-                                if (currentX < swipeThreshold) {
-                                    openCard(v);
-                                } else {
-                                    closeCard(v);
-                                }
-                            }
-                            
-                            isSwiping = false;
-                            return true;
-                        } else {
-                            // If not swiping, treat as click
-                            if (isOpen) {
-                                closeCard(v);
-                                return true;
-                            }
-                        }
-                        return false;
-                }
-                return false;
-            });
-        }
-
-        private void openCard(View view) {
-            isOpen = true;
-            android.animation.ObjectAnimator animator = android.animation.ObjectAnimator.ofFloat(view, "x", view.getX(), openPosition);
-            animator.setDuration(250);
-            animator.setInterpolator(new android.view.animation.DecelerateInterpolator());
-            animator.start();
-        }
-
-        private void closeCard(View view) {
-            isOpen = false;
-            android.animation.ObjectAnimator animator = android.animation.ObjectAnimator.ofFloat(view, "x", view.getX(), 0f);
-            animator.setDuration(250);
-            animator.setInterpolator(new android.view.animation.DecelerateInterpolator());
-            animator.start();
-        }
-
-        private void animateCardOut(View view, Runnable onComplete) {
-            android.animation.ObjectAnimator animator = android.animation.ObjectAnimator.ofFloat(view, "x", view.getX(), -view.getWidth());
-            animator.setDuration(200);
-            animator.addListener(new android.animation.AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(android.animation.Animator animation) {
-                    if (onComplete != null) {
-                        onComplete.run();
-                    }
-                }
-            });
-            animator.start();
         }
 
         private void updateStrikeThrough(TextView textView, boolean isCompleted) {
