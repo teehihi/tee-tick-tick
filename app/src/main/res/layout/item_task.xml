@@ -10,10 +10,11 @@
     android:clipChildren="false"
     android:clipToPadding="false">
 
-    <!-- Delete Background (Always visible behind) -->
+    <!-- Delete Background — hidden, swipe handled by ItemTouchHelper canvas drawing -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:visibility="gone"
         app:cardBackgroundColor="@color/priority_high"
         app:cardCornerRadius="12dp"
         app:cardElevation="0dp">

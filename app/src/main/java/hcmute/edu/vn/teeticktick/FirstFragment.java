@@ -86,6 +86,26 @@ public class FirstFragment extends Fragment {
         });
         binding.recyclerviewTasks.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerviewTasks.setAdapter(adapter);
+
+        // Attach smooth swipe-to-delete via ItemTouchHelper
+        SwipeToDeleteCallback swipeCallback = new SwipeToDeleteCallback(requireContext(), position -> {
+            if (position < 0 || position >= items.size()) return;
+            Object item = items.get(position);
+            if (!(item instanceof Task)) return;
+            Task task = (Task) item;
+            if (task.getId() > 0) {
+                TaskEntity taskEntity = new TaskEntity(
+                    task.getTitle(), "", task.getEmoji(),
+                    task.isCompleted(), "", 0, 0, null, null
+                );
+                taskEntity.setId(task.getId());
+                taskViewModel.delete(taskEntity);
+            }
+            items.remove(position);
+            adapter.notifyItemRemoved(position);
+        });
+        new androidx.recyclerview.widget.ItemTouchHelper(swipeCallback)
+                .attachToRecyclerView(binding.recyclerviewTasks);
         
         // Restore previous filter instead of relying on default call
         String filter = taskViewModel.getCurrentFilter();

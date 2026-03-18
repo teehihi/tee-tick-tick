@@ -367,14 +367,24 @@ public class TimelineFragment extends Fragment {
             }
             durationFraction = Math.max(durationFraction, 1f / 24f);
 
-            int leftPx  = (int)(startDayCol * colPx + startFraction * colPx) + dpToPx(2);
-            // barWidth: for same-day tasks, hard-cap at column right edge minus padding
-            int maxBarWidth = sameDay
-                    ? (int)((1f - startFraction) * colPx) - dpToPx(4)
-                    : (int)(durationFraction * colPx) - dpToPx(4);
-            int barWidth = Math.max(Math.min((int)(durationFraction * colPx) - dpToPx(4), maxBarWidth), dpToPx(48));
-            // Final safety clamp
-            if (sameDay) barWidth = Math.min(barWidth, maxBarWidth);
+            int leftPx = (int)(startDayCol * colPx + startFraction * colPx) + dpToPx(2);
+            // Column right boundary (with padding)
+            int colRightPx = (startDayCol + 1) * colPx - dpToPx(4);
+            int maxBarWidth = colRightPx - leftPx;
+            if (maxBarWidth < dpToPx(8)) continue; // column too narrow to show anything
+
+            int barWidth;
+            if (sameDay) {
+                // Same-day: fill proportionally but NEVER exceed column boundary
+                int desired = (int)(durationFraction * colPx) - dpToPx(4);
+                barWidth = Math.min(desired, maxBarWidth);
+                // Apply min width only if it still fits in column
+                if (barWidth < dpToPx(48) && maxBarWidth >= dpToPx(48)) barWidth = dpToPx(48);
+                barWidth = Math.min(barWidth, maxBarWidth); // final hard cap
+            } else {
+                // Multi-day: can span across columns
+                barWidth = Math.max((int)(durationFraction * colPx) - dpToPx(4), dpToPx(48));
+            }
 
             // Stack: count tasks already placed on the start day
             int stack = dayStackCount.containsKey(startDayCol) ? dayStackCount.get(startDayCol) : 0;
