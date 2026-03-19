@@ -19,6 +19,7 @@ import java.util.Locale;
 
 import hcmute.edu.vn.teeticktick.database.TaskEntity;
 import hcmute.edu.vn.teeticktick.databinding.FragmentTaskDetailBinding;
+import hcmute.edu.vn.teeticktick.service.TaskReminderScheduler;
 import hcmute.edu.vn.teeticktick.viewmodel.TaskViewModel;
 
 public class TaskDetailFragment extends Fragment {
@@ -218,19 +219,33 @@ public class TaskDetailFragment extends Fragment {
             taskEntity.setPriority(selectedPriority);
             taskEntity.setDueDate(selectedDueDate);
             taskEntity.setListName(selectedCategory);
-            
+
             taskViewModel.update(taskEntity);
-            
-            // Navigate back
+
+            // Reschedule reminders with new dueDate
+            if (getContext() != null) {
+                int id = taskEntity.getId();
+                TaskReminderScheduler.cancelReminder(getContext(), id);
+                TaskReminderScheduler.cancelOverdueReminders(getContext(), id);
+                if (selectedDueDate != null && selectedDueDate > System.currentTimeMillis()) {
+                    TaskReminderScheduler.scheduleReminder(
+                            getContext(), id, title, selectedEmoji, selectedDueDate);
+                    TaskReminderScheduler.scheduleOverdueReminders(
+                            getContext(), id, title, selectedEmoji, selectedDueDate);
+                }
+            }
+
             NavHostFragment.findNavController(TaskDetailFragment.this).navigateUp();
         }
     }
-    
+
     private void deleteTask() {
         if (taskEntity != null) {
+            if (getContext() != null) {
+                TaskReminderScheduler.cancelReminder(getContext(), taskEntity.getId());
+                TaskReminderScheduler.cancelOverdueReminders(getContext(), taskEntity.getId());
+            }
             taskViewModel.delete(taskEntity);
-            
-            // Navigate back
             NavHostFragment.findNavController(TaskDetailFragment.this).navigateUp();
         }
     }

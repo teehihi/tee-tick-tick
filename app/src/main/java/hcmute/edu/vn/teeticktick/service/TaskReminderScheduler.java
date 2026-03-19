@@ -59,4 +59,58 @@ public class TaskReminderScheduler {
         WorkManager.getInstance(context).cancelUniqueWork(uniqueWorkName);
         Log.d(TAG, "Cancelled reminder for task ID: " + taskId);
     }
+
+    /**
+     * Schedule overdue reminders: fires at deadline, +1h, +2h, +1day.
+     * Each ping checks if task is still incomplete before notifying.
+     */
+    public static void scheduleOverdueReminders(Context context, int taskId, String title,
+                                                String emoji, long dueDate) {
+        long now = System.currentTimeMillis();
+        if (dueDate <= now) return; // already past, don't schedule
+
+        long[] offsets = {
+            0L,                          // exactly at deadline
+            60 * 60 * 1000L,             // +1 hour
+            2 * 60 * 60 * 1000L,         // +2 hours
+            24 * 60 * 60 * 1000L         // +1 day
+        };
+
+        WorkManager wm = WorkManager.getInstance(context);
+        for (int i = 0; i < offsets.length; i++) {
+            long fireAt = dueDate + offsets[i];
+            long delay  = fireAt - now;
+            if (delay < 0) continue; // already passed, skip
+
+            Data inputData = new Data.Builder()
+                    .putInt(OverdueReminderWorker.KEY_TASK_ID, taskId)
+                    .putString(OverdueReminderWorker.KEY_TASK_TITLE, title)
+                    .putString(OverdueReminderWorker.KEY_TASK_EMOJI, emoji)
+                    .putInt(OverdueReminderWorker.KEY_PING_INDEX, i)
+                    .build();
+
+            OneTimeWorkRequest req = new OneTimeWorkRequest.Builder(OverdueReminderWorker.class)
+                    .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                    .setInputData(inputData)
+                    .build();
+
+            wm.enqueueUniqueWork(
+                    "overdue_" + taskId + "_" + i,
+                    ExistingWorkPolicy.REPLACE,
+                    req
+            );
+        }
+        Log.d(TAG, "Scheduled overdue reminders for task: " + title);
+    }
+
+    /**
+     * Cancel all overdue reminders for a task (on complete/delete/reschedule).
+     */
+    public static void cancelOverdueReminders(Context context, int taskId) {
+        WorkManager wm = WorkManager.getInstance(context);
+        for (int i = 0; i < 4; i++) {
+            wm.cancelUniqueWork("overdue_" + taskId + "_" + i);
+        }
+        Log.d(TAG, "Cancelled overdue reminders for task ID: " + taskId);
+    }
 }

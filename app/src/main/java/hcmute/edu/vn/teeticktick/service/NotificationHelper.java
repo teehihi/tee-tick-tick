@@ -20,12 +20,15 @@ public class NotificationHelper {
     public static final String CHANNEL_REMINDER = "task_reminder_channel";
     public static final String CHANNEL_DAILY = "daily_summary_channel";
     
-    // Category-specific channels
-    public static final String CHANNEL_INBOX = "reminder_inbox";
-    public static final String CHANNEL_WORK = "reminder_work";
-    public static final String CHANNEL_PERSONAL = "reminder_personal";
-    public static final String CHANNEL_SHOPPING = "reminder_shopping";
-    public static final String CHANNEL_LEARNING = "reminder_learning";
+    // Category-specific channels (v2 — forces recreation with correct sounds)
+    public static final String CHANNEL_INBOX    = "reminder_inbox_v2";
+    public static final String CHANNEL_WORK     = "reminder_work_v2";
+    public static final String CHANNEL_PERSONAL = "reminder_personal_v2";
+    public static final String CHANNEL_SHOPPING = "reminder_shopping_v2";
+    public static final String CHANNEL_LEARNING = "reminder_learning_v2";
+
+    // Overdue reminder channel
+    public static final String CHANNEL_OVERDUE  = "reminder_overdue_v1";
 
     public static void createChannels(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -41,13 +44,15 @@ public class NotificationHelper {
             reminderChannel.enableVibration(true);
             manager.createNotificationChannel(reminderChannel);
             
-            // Create category-specific channels — all use the same custom sound
-            String sharedSoundId = "reminder";
-            createCategoryChannel(context, manager, CHANNEL_INBOX,    "Nhắc nhở - Inbox",     sharedSoundId);
-            createCategoryChannel(context, manager, CHANNEL_WORK,     "Nhắc nhở - Công việc", sharedSoundId);
-            createCategoryChannel(context, manager, CHANNEL_PERSONAL, "Nhắc nhở - Cá nhân",   sharedSoundId);
-            createCategoryChannel(context, manager, CHANNEL_SHOPPING, "Nhắc nhở - Mua sắm",   sharedSoundId);
-            createCategoryChannel(context, manager, CHANNEL_LEARNING, "Nhắc nhở - Học tập",   sharedSoundId);
+            // Create category-specific channels with custom sounds
+            createCategoryChannel(context, manager, CHANNEL_INBOX,    "Nhắc nhở - Inbox",    "default");
+            createCategoryChannel(context, manager, CHANNEL_WORK,     "Nhắc nhở - Công việc","work");
+            createCategoryChannel(context, manager, CHANNEL_PERSONAL, "Nhắc nhở - Cá nhân",  "personal");
+            createCategoryChannel(context, manager, CHANNEL_SHOPPING, "Nhắc nhở - Mua sắm",  "shopping");
+            createCategoryChannel(context, manager, CHANNEL_LEARNING, "Nhắc nhở - Học tập",  "learning");
+
+            // Overdue channel with mixi_reminder sound
+            createCategoryChannel(context, manager, CHANNEL_OVERDUE, "Task quá hạn", "overdue");
 
             // Channel for daily summary (foreground service)
             NotificationChannel dailyChannel = new NotificationChannel(
@@ -139,6 +144,23 @@ public class NotificationHelper {
         // Note: Sound is set in channel, not here
         
         return builder.build();
+    }
+
+    public static Notification createOverdueNotification(Context context, String title, String emoji, String message) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+        return new NotificationCompat.Builder(context, CHANNEL_OVERDUE)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(emoji + " " + title)
+                .setContentText(message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_VIBRATE | NotificationCompat.DEFAULT_LIGHTS)
+                .build();
     }
 
     public static Notification createDailySummaryNotification(Context context, int taskCount) {

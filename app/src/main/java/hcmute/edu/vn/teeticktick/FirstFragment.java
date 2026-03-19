@@ -75,6 +75,7 @@ public class FirstFragment extends Fragment {
                 // Cancel reminder when task is completed
                 if (isChecked && getContext() != null) {
                     TaskReminderScheduler.cancelReminder(getContext(), task.getId());
+                    TaskReminderScheduler.cancelOverdueReminders(getContext(), task.getId());
                 }
             }
         });
@@ -100,6 +101,10 @@ public class FirstFragment extends Fragment {
                 );
                 taskEntity.setId(task.getId());
                 taskViewModel.delete(taskEntity);
+                // Cancel any pending reminder so it doesn't fire after deletion
+                if (getContext() != null) {
+                    TaskReminderScheduler.cancelReminder(getContext(), task.getId());
+                }
             }
             items.remove(position);
             adapter.notifyItemRemoved(position);
@@ -172,6 +177,9 @@ public class FirstFragment extends Fragment {
         taskViewModel.insertAndGetId(taskEntity, taskId -> {
             if (finalDueDate != null && finalDueDate > 0 && getContext() != null) {
                 TaskReminderScheduler.scheduleReminder(
+                    getContext(), taskId, title, finalEmoji, finalDueDate
+                );
+                TaskReminderScheduler.scheduleOverdueReminders(
                     getContext(), taskId, title, finalEmoji, finalDueDate
                 );
             }

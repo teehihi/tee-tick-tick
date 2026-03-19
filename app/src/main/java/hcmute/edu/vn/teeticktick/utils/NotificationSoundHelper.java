@@ -35,11 +35,11 @@ public class NotificationSoundHelper {
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         ));
         
-        // Check and add custom sounds if they exist
-        addSoundIfExists(context, sounds, "sound_1", "Âm thanh 1 - Công việc", "notification_sound_1");
-        addSoundIfExists(context, sounds, "sound_2", "Âm thanh 2 - Cá nhân", "notification_sound_2");
-        addSoundIfExists(context, sounds, "sound_3", "Âm thanh 3 - Mua sắm", "notification_sound_3");
-        addSoundIfExists(context, sounds, "sound_4", "Âm thanh 4 - Học tập", "notification_sound_4");
+        // Custom sounds mapped to actual raw file names
+        addSoundIfExists(context, sounds, "work",     "Công việc",  "work_reminder");
+        addSoundIfExists(context, sounds, "personal", "Cá nhân",    "reminder");
+        addSoundIfExists(context, sounds, "shopping", "Mua sắm",    "shopping_reminder");
+        addSoundIfExists(context, sounds, "learning", "Học tập",    "study_reminder");
         
         return sounds;
     }
@@ -65,18 +65,19 @@ public class NotificationSoundHelper {
             return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         }
 
+        // Map soundId → raw resource name
+        String rawName;
+        switch (soundId) {
+            case "work":     rawName = "work_reminder";     break;
+            case "personal": rawName = "reminder";          break;
+            case "shopping": rawName = "shopping_reminder"; break;
+            case "learning": rawName = "study_reminder";    break;
+            case "overdue":  rawName = "mixi_reminder";     break;
+            default:         rawName = soundId;             break; // allow direct raw name
+        }
+
         try {
-            // Try exact resource name first (e.g. "reminder" → res/raw/reminder.mp3)
-            int resId = context.getResources().getIdentifier(soundId, "raw", context.getPackageName());
-
-            // Fallback: legacy mapping "sound_1" → "notification_sound_1"
-            if (resId == 0) {
-                resId = context.getResources().getIdentifier(
-                    soundId.replace("sound_", "notification_sound_"),
-                    "raw", context.getPackageName()
-                );
-            }
-
+            int resId = context.getResources().getIdentifier(rawName, "raw", context.getPackageName());
             if (resId != 0) {
                 return Uri.parse("android.resource://" + context.getPackageName() + "/" + resId);
             }
