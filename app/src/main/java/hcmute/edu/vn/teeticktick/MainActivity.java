@@ -95,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        TaskViewModel taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
+
         setupCustomDrawer();
         setupDrawerListener();
         
@@ -111,8 +114,6 @@ public class MainActivity extends AppCompatActivity {
         
         binding.fab.setOnClickListener(view -> showAddTaskDialog());
         
-        TaskViewModel taskViewModel = new ViewModelProvider(this).get(TaskViewModel.class);
-        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
         setupCountObservers(taskViewModel);
         
         // Create notification channels
@@ -324,6 +325,67 @@ public class MainActivity extends AppCompatActivity {
         });
         
         updateSmartListVisibility();
+        setupDynamicCategories();
+    }
+
+    // Known built-in categories — don't show them again in dynamic section
+    private static final java.util.Set<String> BUILTIN_CATEGORIES = new java.util.HashSet<>(
+        java.util.Arrays.asList("Inbox", "Work", "Personal", "Shopping", "Learning", "Welcome")
+    );
+
+    private void setupDynamicCategories() {
+        android.widget.LinearLayout container = binding.customDrawer.findViewById(R.id.custom_categories_container);
+        if (container == null) return;
+
+        categoryViewModel.getAllCategories().observe(this, categories -> {
+            container.removeAllViews();
+            if (categories == null) return;
+
+            for (CategoryEntity cat : categories) {
+                // Skip built-in ones already hardcoded in layout
+                if (BUILTIN_CATEGORIES.contains(cat.getName())) continue;
+
+                android.widget.LinearLayout row = new android.widget.LinearLayout(this);
+                row.setOrientation(android.widget.LinearLayout.HORIZONTAL);
+                row.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                int pad = (int)(14 * getResources().getDisplayMetrics().density);
+                int padH = (int)(20 * getResources().getDisplayMetrics().density);
+                int marginH = (int)(8 * getResources().getDisplayMetrics().density);
+                row.setPadding(padH, pad, padH, pad);
+                row.setBackground(getDrawable(R.drawable.bg_drawer_item_selected));
+                android.widget.LinearLayout.LayoutParams rowLp = new android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                rowLp.setMargins(marginH, 0, marginH, 0);
+                row.setLayoutParams(rowLp);
+
+                // Icon ImageView using IconHelper
+                android.widget.ImageView iconView = new android.widget.ImageView(this);
+                String iconKey = cat.getEmoji(); // stored as icon key e.g. "star", "inbox"
+                iconView.setImageResource(hcmute.edu.vn.teeticktick.utils.IconHelper.getIconDrawable(iconKey));
+                iconView.setColorFilter(hcmute.edu.vn.teeticktick.utils.IconHelper.getIconColor(iconKey));
+                int iconSize = (int)(24 * getResources().getDisplayMetrics().density);
+                android.widget.LinearLayout.LayoutParams emojiLp = new android.widget.LinearLayout.LayoutParams(iconSize, iconSize);
+                iconView.setLayoutParams(emojiLp);
+                row.addView(iconView);
+
+                // Name
+                android.widget.TextView nameView = new android.widget.TextView(this);
+                nameView.setText(cat.getName());
+                nameView.setTextSize(16f);
+                nameView.setTextColor(getResources().getColor(R.color.text_primary, null));
+                android.widget.LinearLayout.LayoutParams nameLp = new android.widget.LinearLayout.LayoutParams(
+                    0, android.view.ViewGroup.LayoutParams.WRAP_CONTENT, 1f
+                );
+                nameLp.setMarginStart((int)(16 * getResources().getDisplayMetrics().density));
+                nameView.setLayoutParams(nameLp);
+                row.addView(nameView);
+
+                row.setOnClickListener(v -> handleMenuClick(cat.getName()));
+                container.addView(row);
+            }
+        });
     }
 
     private void handleMenuClick(String menuItem) {

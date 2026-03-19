@@ -71,13 +71,13 @@ public class AddListBottomSheet extends BottomSheetDialogFragment {
         
         // Emoji selector - open emoji picker
         emojiSelector.setOnClickListener(v -> {
-            CategoryIconPickerBottomSheet iconPicker = new CategoryIconPickerBottomSheet(); // Changed to CategoryIconPickerBottomSheet
-            iconPicker.setOnIconSelectedListener(iconKey -> { // Changed to setOnIconSelectedListener
-                selectedIconKey = iconKey;
-                emojiSelector.setImageResource(IconHelper.getIconDrawable(iconKey)); // Updated to use IconHelper and setImageResource
-                emojiSelector.setColorFilter(IconHelper.getIconColor(iconKey));
+            CategoryIconPickerBottomSheet iconPicker = new CategoryIconPickerBottomSheet();
+            iconPicker.setOnIconSelectedListener((iconRes, color) -> {
+                selectedIconKey = getResources().getResourceEntryName(iconRes);
+                emojiSelector.setImageResource(iconRes);
+                emojiSelector.setColorFilter(color);
             });
-            iconPicker.show(getParentFragmentManager(), "CategoryIconPicker"); // Changed tag
+            iconPicker.show(getParentFragmentManager(), "CategoryIconPicker");
         });
         
         // Sound selector - open sound picker

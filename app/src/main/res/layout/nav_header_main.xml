@@ -317,6 +317,13 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
+            <!-- Dynamic custom categories injected here -->
+            <LinearLayout
+                android:id="@+id/custom_categories_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
             <!-- SMART LISTS Section -->
             <LinearLayout
                 android:layout_width="match_parent"

@@ -1,27 +1,120 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_rounded_white"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingTop="24dp"
-    android:paddingBottom="36dp">
+    android:background="@drawable/bg_dialog_rounded">
 
-    <TextView
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Chọn biểu tượng"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#0A0A0A" />
+
+        <ImageView
+            android:id="@+id/btn_close_picker"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_ios_x_circle"
+            android:padding="4dp"
+            app:tint="#9CA3AF"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Chọn icon danh mục"
-        android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:textSize="22sp"
-        android:layout_marginBottom="24dp" />
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/icon_recyclerview"
+        <!-- Color section label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Màu sắc"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#364153"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Color row: scrollable -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:id="@+id/color_row"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="4dp" />
+        </HorizontalScrollView>
+
+        <!-- Icon section label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Biểu tượng"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#364153"
+            android:layout_marginBottom="10dp" />
+
+        <!-- Icon grid: 4 rows × 6 cols, evenly distributed -->
+        <LinearLayout
+            android:id="@+id/icon_grid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#E5E7EB" />
+
+    <!-- Confirm button -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clipToPadding="false" />
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="20dp">
+
+        <Button
+            android:id="@+id/btn_confirm"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Xác nhận"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:background="@drawable/bg_button_blue"
+            app:backgroundTint="@null"
+            android:elevation="0dp"
+            android:stateListAnimator="@null" />
+    </LinearLayout>
 
 </LinearLayout>

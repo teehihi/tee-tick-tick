@@ -122,7 +122,7 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     public class TaskViewHolder extends RecyclerView.ViewHolder {
         CheckBox checkBox;
-        TextView emojiTextView;
+        android.widget.ImageView emojiImageView;
         TextView titleTextView;
         androidx.cardview.widget.CardView foregroundCard;
         LinearLayout deleteButton;
@@ -130,18 +130,36 @@ public class TaskGroupAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
             checkBox = itemView.findViewById(R.id.checkbox_task);
-            emojiTextView = itemView.findViewById(R.id.task_emoji);
+            emojiImageView = itemView.findViewById(R.id.task_emoji);
             titleTextView = itemView.findViewById(R.id.textview_task_title);
             foregroundCard = itemView.findViewById(R.id.task_card_foreground);
             deleteButton = itemView.findViewById(R.id.delete_button);
         }
 
         public void bind(Task task) {
-            if (task.getEmoji() != null && !task.getEmoji().isEmpty()) {
-                emojiTextView.setVisibility(View.VISIBLE);
-                emojiTextView.setText(task.getEmoji());
+            String iconField = task.getEmoji();
+            if (iconField != null && !iconField.isEmpty()) {
+                // Parse "iconName|#RRGGBB" or legacy plain iconName
+                String iconName = iconField.contains("|") ? iconField.split("\\|")[0] : iconField;
+                String colorHex = iconField.contains("|") ? iconField.split("\\|")[1] : null;
+                int resId = itemView.getContext().getResources().getIdentifier(
+                        iconName, "drawable", itemView.getContext().getPackageName());
+                if (resId != 0) {
+                    emojiImageView.setImageResource(resId);
+                    int color;
+                    if (colorHex != null) {
+                        try { color = android.graphics.Color.parseColor(colorHex); }
+                        catch (Exception e) { color = hcmute.edu.vn.teeticktick.utils.IconHelper.getIconColor(iconName.startsWith("ic_ios_") ? iconName.substring(7) : iconName); }
+                    } else {
+                        color = hcmute.edu.vn.teeticktick.utils.IconHelper.getIconColor(iconName.startsWith("ic_ios_") ? iconName.substring(7) : iconName);
+                    }
+                    emojiImageView.setColorFilter(color);
+                    emojiImageView.setVisibility(View.VISIBLE);
+                } else {
+                    emojiImageView.setVisibility(View.GONE);
+                }
             } else {
-                emojiTextView.setVisibility(View.GONE);
+                emojiImageView.setVisibility(View.GONE);
             }
 
             titleTextView.setText(task.getTitle());

@@ -4,493 +4,512 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_rounded_white"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingTop="16dp"
-    android:paddingBottom="24dp">
+    android:background="@drawable/bg_bottom_sheet_28">
 
-    <!-- Header -->
+    <!-- Drag handle -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="6dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_drag_handle" />
+
+    <!-- Header: Hủy | Task mới | Thêm -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="20dp">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView
+            android:id="@+id/btn_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hủy"
+            android:textSize="16sp"
+            android:textColor="#2B7FFF"
+            android:fontFamily="sans-serif-medium"
+            android:padding="4dp" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Nhiệm vụ mới"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:text="Task mới"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#0A0A0A"
+            android:gravity="center" />
 
-        <ImageView
-            android:id="@+id/close_button"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:padding="6dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            app:tint="@color/text_secondary"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+        <TextView
+            android:id="@+id/btn_add_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thêm"
+            android:textSize="16sp"
+            android:textColor="#2B7FFF"
+            android:fontFamily="sans-serif-medium"
+            android:padding="4dp" />
     </LinearLayout>
 
-    <!-- Emoji + Task Input Row -->
-    <LinearLayout
+    <!-- Scrollable content -->
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="24dp">
+        android:fillViewport="true"
+        android:scrollbars="none">
 
-        <!-- Emoji Selector Button -->
-        <com.vanniktech.emoji.EmojiTextView
-            android:id="@+id/emoji_selector"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:text="✅"
-            android:textSize="28sp"
-            android:gravity="center"
-            android:background="@drawable/bg_input_field"
-            android:layout_marginEnd="12dp"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <!-- Task Input layout containing Title and Description -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:orientation="vertical"
-            android:background="@drawable/bg_input_field">
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
 
-            <EditText
-                android:id="@+id/task_title_input"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:background="@null"
-                android:hint="Bạn cần làm gì?"
-                android:textColorHint="@color/text_secondary"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-                android:inputType="textCapSentences" />
-
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:background="#E0E0E0" />
-
-            <EditText
-                android:id="@+id/task_description_input"
+            <!-- Icon + Task Input Row -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:background="@null"
-                android:hint="Thêm mô tả chi tiết..."
-                android:textColorHint="@color/text_secondary"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
+                android:orientation="horizontal"
+                android:gravity="top"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Icon/Emoji Selector: 56x56, blue bg, radius 16 -->
+                <ImageView
+                    android:id="@+id/emoji_selector"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@drawable/ic_ios_check_circle"
+                    android:scaleType="center"
+                    android:padding="14dp"
+                    android:background="@drawable/bg_icon_blue"
+                    android:layout_marginEnd="12dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:tint="#FFFFFF" />
+
+                <!-- Title + Description, no background -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center_vertical">
+
+                    <EditText
+                        android:id="@+id/task_title_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="32dp"
+                        android:background="@null"
+                        android:hint="Tên task"
+                        android:textColorHint="#99A1AF"
+                        android:textColor="#0A0A0A"
+                        android:textSize="18sp"
+                        android:fontFamily="sans-serif-medium"
+                        android:inputType="textCapSentences"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="4dp" />
+
+                    <EditText
+                        android:id="@+id/task_description_input"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:minHeight="24dp"
+                        android:background="@null"
+                        android:hint="Mô tả task"
+                        android:textColorHint="#99A1AF"
+                        android:textColor="#4A5565"
+                        android:textSize="14sp"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:gravity="top|start"
+                        android:paddingTop="0dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Tab: Ngày / Thời lượng -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_tab_container"
+                android:layout_marginBottom="12dp"
+                android:padding="4dp">
+
+                <TextView
+                    android:id="@+id/tab_date"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Ngày"
+                    android:textSize="15sp"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:background="@drawable/bg_tab_selected_shadow"
+                    android:textColor="#000000"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/tab_duration"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Thời lượng"
+                    android:textSize="15sp"
+                    android:gravity="center"
+                    android:background="@android:color/transparent"
+                    android:textColor="#4A5565"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- DATE panel -->
+            <LinearLayout
+                android:id="@+id/panel_date"
+                android:layout_width="match_parent"
+                android:layout_height="76dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_date_row"
+                android:layout_marginBottom="8dp"
                 android:padding="16dp"
-                android:inputType="textMultiLine|textCapSentences"
-                android:gravity="top|start" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Priority Section -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="20dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@android:drawable/btn_star"
-                app:tint="@color/text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Độ ưu tiên"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-
-            <TextView
-                android:id="@+id/priority_low"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="Thấp"
-                android:textColor="@color/text_secondary"
-                android:textSize="15sp"
-                android:gravity="center"
-                android:background="@drawable/chip_priority_selector"
-                android:layout_marginEnd="8dp"
+                android:gravity="center_vertical"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
 
-            <TextView
-                android:id="@+id/priority_medium"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="Trung bình"
-                android:textColor="@color/white"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:background="@drawable/chip_priority_selector"
-                android:layout_marginEnd="8dp"
-                android:clickable="true"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/priority_high"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="Cao"
-                android:textColor="@color/text_secondary"
-                android:textSize="15sp"
-                android:gravity="center"
-                android:background="@drawable/chip_priority_selector"
-                android:clickable="true"
-                android:focusable="true" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Date/Time Section -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="20dp">
-
-        <!-- Section header -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="14dp">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@android:drawable/ic_menu_my_calendar"
-                app:tint="@color/text_secondary" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Thời gian"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <!-- ── BẮT ĐẦU ── -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Bắt đầu"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="6dp" />
-
-        <!-- Quick chips: start -->
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:layout_marginBottom="8dp">
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/start_today"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Hôm nay"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
+                <!-- Calendar icon box: blue -->
+                <LinearLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    android:background="@drawable/bg_icon_box_blue"
+                    android:layout_marginEnd="12dp">
 
-                <TextView
-                    android:id="@+id/start_tomorrow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Ngày mai"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_ios_calendar"
+                        app:tint="#FFFFFF" />
+                </LinearLayout>
 
-                <TextView
-                    android:id="@+id/start_pick"
+                <!-- Date info -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ngày"
+                        android:textSize="13sp"
+                        android:textColor="#6A7282"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="2dp" />
+
+                    <TextView
+                        android:id="@+id/start_date_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chọn ngày"
+                        android:textSize="16sp"
+                        android:textColor="#0A0A0A"
+                        android:fontFamily="sans-serif-medium"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </LinearLayout>
+
+                <!-- Time button with clock icon -->
+                <LinearLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Chọn ngày"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:background="@drawable/chip_category_selector"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:clickable="true"
-                    android:focusable="true" />
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:src="@drawable/ic_ios_clock"
+                        android:layout_marginEnd="4dp"
+                        app:tint="#2B7FFF" />
+
+                    <TextView
+                        android:id="@+id/start_time_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="--:--"
+                        android:textSize="15sp"
+                        android:textColor="#2B7FFF"
+                        android:fontFamily="sans-serif-medium"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </LinearLayout>
             </LinearLayout>
-        </HorizontalScrollView>
 
-        <!-- Start date + time display row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:id="@+id/start_date_btn"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:text="Chọn ngày"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:background="@drawable/chip_category_selector"
-                android:layout_marginEnd="8dp"
-                android:clickable="true"
-                android:focusable="true" />
-
-            <TextView
-                android:id="@+id/start_time_btn"
-                android:layout_width="80dp"
-                android:layout_height="40dp"
-                android:text="--:--"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:background="@drawable/chip_category_selector"
-                android:clickable="true"
-                android:focusable="true" />
-        </LinearLayout>
-
-        <!-- ── ĐẾN HẠN ── -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Đến hạn"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="6dp" />
-
-        <!-- Quick chips: end -->
-        <HorizontalScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:layout_marginBottom="8dp">
+            <!-- DURATION panel (hidden by default) -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:id="@+id/panel_duration"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone">
 
-                <TextView
-                    android:id="@+id/end_today"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Hôm nay"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
+                <!-- Start row -->
+                <LinearLayout
+                    android:id="@+id/row_dur_start"
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_date_row"
+                    android:layout_marginBottom="8dp"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
                     android:clickable="true"
-                    android:focusable="true" />
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
 
-                <TextView
-                    android:id="@+id/end_tomorrow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Ngày mai"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                    <LinearLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:background="@drawable/bg_icon_box_blue"
+                        android:layout_marginEnd="12dp">
 
-                <TextView
-                    android:id="@+id/end_this_week"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Tuần này"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:background="@drawable/chip_category_selector"
-                    android:layout_marginEnd="8dp"
-                    android:clickable="true"
-                    android:focusable="true" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_ios_calendar"
+                            app:tint="#FFFFFF" />
+                    </LinearLayout>
 
-                <TextView
-                    android:id="@+id/end_pick"
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:text="Chọn ngày"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:gravity="center"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:background="@drawable/chip_category_selector"
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ngày bắt đầu"
+                            android:textSize="13sp"
+                            android:textColor="#6A7282"
+                            android:layout_marginBottom="2dp" />
+
+                        <TextView
+                            android:id="@+id/dur_start_date_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chọn ngày"
+                            android:textSize="16sp"
+                            android:textColor="#0A0A0A"
+                            android:fontFamily="sans-serif-medium"
+                            android:clickable="true"
+                            android:focusable="true" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_ios_clock"
+                            android:layout_marginEnd="4dp"
+                            app:tint="#2B7FFF" />
+
+                        <TextView
+                            android:id="@+id/dur_start_time_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--:--"
+                            android:textSize="15sp"
+                            android:textColor="#2B7FFF"
+                            android:fontFamily="sans-serif-medium"
+                            android:clickable="false"
+                            android:focusable="false" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- End row -->
+                <LinearLayout
+                    android:id="@+id/row_dur_end"
+                    android:layout_width="match_parent"
+                    android:layout_height="72dp"
+                    android:orientation="horizontal"
+                    android:background="@drawable/bg_date_row"
+                    android:layout_marginBottom="8dp"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
                     android:clickable="true"
-                    android:focusable="true" />
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <LinearLayout
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:background="@drawable/bg_icon_box_blue"
+                        android:layout_marginEnd="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_ios_calendar"
+                            app:tint="#FFFFFF" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ngày kết thúc"
+                            android:textSize="13sp"
+                            android:textColor="#6A7282"
+                            android:layout_marginBottom="2dp" />
+
+                        <TextView
+                            android:id="@+id/dur_end_date_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chọn ngày"
+                            android:textSize="16sp"
+                            android:textColor="#0A0A0A"
+                            android:fontFamily="sans-serif-medium"
+                            android:clickable="true"
+                            android:focusable="true" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_ios_clock"
+                            android:layout_marginEnd="4dp"
+                            app:tint="#2B7FFF" />
+
+                        <TextView
+                            android:id="@+id/dur_end_time_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--:--"
+                            android:textSize="15sp"
+                            android:textColor="#2B7FFF"
+                            android:fontFamily="sans-serif-medium"
+                            android:clickable="false"
+                            android:focusable="false" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Duration label chip -->
+                <TextView
+                    android:id="@+id/tv_duration_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Thời lượng: 1 ngày"
+                    android:textSize="13sp"
+                    android:textColor="#2B7FFF"
+                    android:background="@drawable/bg_duration_chip"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:layout_marginBottom="8dp"
+                    android:visibility="gone" />
             </LinearLayout>
-        </HorizontalScrollView>
 
-        <!-- End date + time display row -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:id="@+id/end_date_btn"
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:layout_weight="1"
-                android:text="Chọn ngày"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:background="@drawable/chip_category_selector"
-                android:layout_marginEnd="8dp"
+            <!-- "Thông tin thêm" row: orange icon -->
+            <LinearLayout
+                android:id="@+id/row_extra_info"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:orientation="horizontal"
+                android:background="@drawable/bg_date_row"
+                android:layout_marginBottom="8dp"
+                android:padding="16dp"
+                android:gravity="center_vertical"
                 android:clickable="true"
-                android:focusable="true" />
+                android:focusable="true">
 
-            <TextView
-                android:id="@+id/end_time_btn"
-                android:layout_width="80dp"
-                android:layout_height="40dp"
-                android:text="--:--"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:gravity="center"
-                android:background="@drawable/chip_category_selector"
-                android:clickable="true"
-                android:focusable="true" />
-        </LinearLayout>
+                <!-- Orange icon box -->
+                <LinearLayout
+                    android:id="@+id/extra_info_icon_box"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:gravity="center"
+                    android:background="@drawable/bg_icon_box_orange"
+                    android:layout_marginEnd="12dp">
 
-    </LinearLayout>
+                    <ImageView
+                        android:id="@+id/extra_info_icon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_ios_info"
+                        app:tint="#FFFFFF" />
+                </LinearLayout>
 
-    <!-- Category Section -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginBottom="24dp">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="12dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Thông tin thêm"
+                        android:textSize="13sp"
+                        android:textColor="#6A7282"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_marginBottom="2dp" />
 
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@android:drawable/ic_menu_agenda"
-                app:tint="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_extra_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chưa thiết lập"
+                        android:textSize="14sp"
+                        android:textColor="#0A0A0A"
+                        android:fontFamily="sans-serif-medium" />
+                </LinearLayout>
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Assignee chips (shown after picking contact) -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_assignees"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Danh mục"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="8dp"
+                app:chipSpacingVertical="4dp"
+                app:chipSpacingHorizontal="4dp" />
+
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/select_category_button"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:text="Chọn danh mục"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:background="@drawable/chip_category_selector"
-            android:drawableEnd="@android:drawable/arrow_down_float"
-            android:clickable="true"
-            android:focusable="true" />
-    </LinearLayout>
-
-    <!-- Add Task Button -->
-    <Button
-        android:id="@+id/add_task_button"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Thêm nhiệm vụ"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:background="@drawable/bg_button_green"
-        app:backgroundTint="@null"
-        android:elevation="0dp"
-        android:stateListAnimator="@null" />
+    </ScrollView>
 
 </LinearLayout>

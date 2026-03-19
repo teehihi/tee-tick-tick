@@ -1,13 +1,15 @@
 package hcmute.edu.vn.teeticktick;
 
-import android.app.DatePickerDialog;
+import android.app.Activity;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,34 +17,51 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+
+import hcmute.edu.vn.teeticktick.bottomsheet.DateTimePickerBottomSheet;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class AddTaskBottomSheet extends BottomSheetDialogFragment {
 
-    private EditText taskTitleInput;
-    private EditText taskDescriptionInput;
-    private TextView emojiSelector;
-    private TextView priorityLow, priorityMedium, priorityHigh;
-    private TextView dateToday, dateTomorrow, dateThisWeek, datePick;
-    private TextView startDateBtn, startTimeBtn, endDateBtn, endTimeBtn;
-    private TextView startToday, startTomorrow, startPick;
-    private TextView endToday, endTomorrow, endThisWeek, endPick;
-    private TextView selectCategoryButton;
-    private Button addTaskButton;
-    private ImageView closeButton;
-    
-    private int selectedPriority = 1;
-    private String selectedCategory = "Personal";
-    private String selectedEmoji = "✅";
+    private android.widget.EditText taskTitleInput, taskDescriptionInput;
+    private android.widget.ImageView emojiSelector;
+    private TextView tabDate, tabDuration;
+    private LinearLayout panelDate, panelDuration;
+    // Date mode
+    private TextView startDateBtn, startTimeBtn;
+    // Duration mode
+    private TextView durStartDateBtn, durStartTimeBtn, durEndDateBtn, durEndTimeBtn;
+    private TextView tvDurationLabel;
+    private LinearLayout rowDurStart, rowDurEnd;
+    private TextView btnAddHeader, btnCancel;
+    private ChipGroup chipGroupAssignees;
+    private android.widget.LinearLayout rowExtraInfo;
+    private android.widget.LinearLayout extraInfoIconBox;
+    private android.widget.ImageView extraInfoIcon;
+    private android.widget.TextView tvExtraInfo;
+
+    private int selectedIconRes = R.drawable.ic_ios_check_circle;
+    private int selectedIconColor = 0xFF2B7FFF;
+    private String selectedCategory = null; // null = chưa chọn
     private Long selectedStartDate = null;
     private Long selectedDueDate = null;
+    private boolean isDurationMode = false;
+    private boolean categorySelected = false;
     private OnTaskAddedListener listener;
 
+    private final List<String> assignees = new ArrayList<>();
+    private static final int REQUEST_CONTACT = 1001;
+
     public interface OnTaskAddedListener {
-        void onTaskAdded(String title, String description, String emoji, String listName, Long startDate, Long dueDate);
+        void onTaskAdded(String title, String description, String emoji, String listName,
+                         Long startDate, Long dueDate);
     }
 
     public void setOnTaskAddedListener(OnTaskAddedListener listener) {
@@ -51,237 +70,377 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.bottom_sheet_add_task, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         initViews(view);
         setupClickListeners();
-        
-        // Set default selections
-        selectPriority(priorityMedium, 1);
-        selectedCategory = "Personal";
-        selectCategoryButton.setText(getString(R.string.list_personal));
-        
+        expandToFullScreen();
         taskTitleInput.requestFocus();
+    }
+
+    private void expandToFullScreen() {
+        // Expand bottom sheet to full height when dragged up
+        com.google.android.material.bottomsheet.BottomSheetDialog dialog =
+                (com.google.android.material.bottomsheet.BottomSheetDialog) getDialog();
+        if (dialog != null) {
+            android.widget.FrameLayout bottomSheet = dialog.findViewById(
+                    com.google.android.material.R.id.design_bottom_sheet);
+            if (bottomSheet != null) {
+                com.google.android.material.bottomsheet.BottomSheetBehavior<android.widget.FrameLayout> behavior =
+                        com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet);
+                behavior.setPeekHeight(dpToPx(480));
+                behavior.setSkipCollapsed(false);
+                behavior.setState(com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED);
+                // Allow full expand
+                bottomSheet.getLayoutParams().height = ViewGroup.LayoutParams.MATCH_PARENT;
+                bottomSheet.requestLayout();
+            }
+        }
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * requireContext().getResources().getDisplayMetrics().density);
     }
 
     private void initViews(View view) {
         taskTitleInput = view.findViewById(R.id.task_title_input);
         taskDescriptionInput = view.findViewById(R.id.task_description_input);
-        emojiSelector = view.findViewById(R.id.emoji_selector);
-        closeButton = view.findViewById(R.id.close_button);
+        emojiSelector = view.findViewById(R.id.emoji_selector);        btnCancel = view.findViewById(R.id.btn_cancel);
+        btnAddHeader = view.findViewById(R.id.btn_add_header);
 
-        priorityLow = view.findViewById(R.id.priority_low);
-        priorityMedium = view.findViewById(R.id.priority_medium);
-        priorityHigh = view.findViewById(R.id.priority_high);
+        tabDate = view.findViewById(R.id.tab_date);
+        tabDuration = view.findViewById(R.id.tab_duration);
+        panelDate = view.findViewById(R.id.panel_date);
+        panelDuration = view.findViewById(R.id.panel_duration);
 
         startDateBtn = view.findViewById(R.id.start_date_btn);
         startTimeBtn = view.findViewById(R.id.start_time_btn);
-        endDateBtn   = view.findViewById(R.id.end_date_btn);
-        endTimeBtn   = view.findViewById(R.id.end_time_btn);
 
-        startToday    = view.findViewById(R.id.start_today);
-        startTomorrow = view.findViewById(R.id.start_tomorrow);
-        startPick     = view.findViewById(R.id.start_pick);
-        endToday      = view.findViewById(R.id.end_today);
-        endTomorrow   = view.findViewById(R.id.end_tomorrow);
-        endThisWeek   = view.findViewById(R.id.end_this_week);
-        endPick       = view.findViewById(R.id.end_pick);
+        durStartDateBtn = view.findViewById(R.id.dur_start_date_btn);
+        durStartTimeBtn = view.findViewById(R.id.dur_start_time_btn);
+        durEndDateBtn = view.findViewById(R.id.dur_end_date_btn);
+        durEndTimeBtn = view.findViewById(R.id.dur_end_time_btn);
+        tvDurationLabel = view.findViewById(R.id.tv_duration_label);
+        rowDurStart = view.findViewById(R.id.row_dur_start);
+        rowDurEnd = view.findViewById(R.id.row_dur_end);
 
-        selectCategoryButton = view.findViewById(R.id.select_category_button);
-        addTaskButton = view.findViewById(R.id.add_task_button);
+        rowExtraInfo = view.findViewById(R.id.row_extra_info);
+        extraInfoIconBox = view.findViewById(R.id.extra_info_icon_box);
+        extraInfoIcon = view.findViewById(R.id.extra_info_icon);
+        tvExtraInfo = view.findViewById(R.id.tv_extra_info);
+        chipGroupAssignees = view.findViewById(R.id.chip_group_assignees);
     }
 
     private void setupClickListeners() {
-        closeButton.setOnClickListener(v -> dismiss());
+        btnCancel.setOnClickListener(v -> dismiss());
+        btnAddHeader.setOnClickListener(v -> submitTask());
 
         emojiSelector.setOnClickListener(v -> {
-            hcmute.edu.vn.teeticktick.bottomsheet.EmojiPickerBottomSheet picker =
-                    new hcmute.edu.vn.teeticktick.bottomsheet.EmojiPickerBottomSheet();
-            picker.setOnEmojiSelectedListener(emoji -> {
-                selectedEmoji = emoji;
-                emojiSelector.setText(emoji);
+            hcmute.edu.vn.teeticktick.bottomsheet.CategoryIconPickerBottomSheet picker =
+                    new hcmute.edu.vn.teeticktick.bottomsheet.CategoryIconPickerBottomSheet();
+            picker.setInitialIcon(selectedIconRes);
+            picker.setInitialColor(selectedIconColor);
+            picker.setOnIconSelectedListener((iconRes, color) -> {
+                selectedIconRes = iconRes;
+                selectedIconColor = color;
+                updateIconButton();
             });
-            picker.show(getParentFragmentManager(), "EmojiPicker");
+            picker.show(getParentFragmentManager(), "IconPicker");
         });
 
-        priorityLow.setOnClickListener(v -> selectPriority(priorityLow, 0));
-        priorityMedium.setOnClickListener(v -> selectPriority(priorityMedium, 1));
-        priorityHigh.setOnClickListener(v -> selectPriority(priorityHigh, 2));
+        tabDate.setOnClickListener(v -> switchTab(false));
+        tabDuration.setOnClickListener(v -> switchTab(true));
 
-        startDateBtn.setOnClickListener(v -> showDatePickerFor(true));
-        startTimeBtn.setOnClickListener(v -> showTimePickerFor(true));
-        endDateBtn.setOnClickListener(v -> showDatePickerFor(false));
-        endTimeBtn.setOnClickListener(v -> showTimePickerFor(false));
+        startDateBtn.setOnClickListener(v -> showDatePicker(true, false));
+        startTimeBtn.setOnClickListener(v -> showTimePicker(true, false));
+        // Whole date row is clickable too
+        panelDate.setOnClickListener(v -> showDatePicker(true, false));
 
-        // Quick chips — start
-        startToday.setOnClickListener(v -> applyQuickDate(true, 0));
-        startTomorrow.setOnClickListener(v -> applyQuickDate(true, 1));
-        startPick.setOnClickListener(v -> showDatePickerFor(true));
+        durStartDateBtn.setOnClickListener(v -> showDatePicker(true, true));
+        durStartTimeBtn.setOnClickListener(v -> showTimePicker(true, true));
+        durEndDateBtn.setOnClickListener(v -> showDatePicker(false, true));
+        durEndTimeBtn.setOnClickListener(v -> showTimePicker(false, true));
+        rowDurStart.setOnClickListener(v -> showDatePicker(true, true));
+        rowDurEnd.setOnClickListener(v -> showDatePicker(false, true));
 
-        // Quick chips — end
-        endToday.setOnClickListener(v -> applyQuickDate(false, 0));
-        endTomorrow.setOnClickListener(v -> applyQuickDate(false, 1));
-        endThisWeek.setOnClickListener(v -> applyQuickDate(false, 7));
-        endPick.setOnClickListener(v -> showDatePickerFor(false));
+        rowExtraInfo.setOnClickListener(v -> openExtraInfo());
 
-        selectCategoryButton.setOnClickListener(v -> {
-            hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet listPicker =
-                    new hcmute.edu.vn.teeticktick.bottomsheet.ListPickerBottomSheet();
-            listPicker.setSelectedList(selectedCategory);
-            listPicker.setOnListSelectedListener(list -> {
-                selectedCategory = list.getKey();
-                selectCategoryButton.setText(list.getDisplayName());
+        // Disable "Thêm" until all 3 conditions met
+        btnAddHeader.setAlpha(0.4f);
+        btnAddHeader.setEnabled(false);
+        taskTitleInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                refreshAddButton();
+            }
+            @Override public void afterTextChanged(android.text.Editable s) {}
+        });
+
+        // Tab Ngày: default to today when bottom sheet opens
+        Calendar today = Calendar.getInstance();
+        today.set(Calendar.SECOND, 0);
+        today.set(Calendar.MILLISECOND, 0);
+        selectedStartDate = today.getTimeInMillis();
+        String todayStr = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(today.getTime());
+        startDateBtn.setText(todayStr);
+    }
+
+    private void switchTab(boolean toDuration) {
+        isDurationMode = toDuration;
+        if (toDuration) {
+            tabDuration.setBackgroundResource(R.drawable.bg_tab_selected);
+            tabDuration.setTextColor(getResources().getColor(android.R.color.black, null));
+            tabDate.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            tabDate.setTextColor(0xFF4A5565);
+            panelDate.setVisibility(View.GONE);
+            panelDuration.setVisibility(View.VISIBLE);
+            // Set defaults: today 00:00 → 23:59 if not yet chosen
+            if (selectedStartDate == null) {
+                Calendar start = Calendar.getInstance();
+                start.set(Calendar.HOUR_OF_DAY, 0);
+                start.set(Calendar.MINUTE, 0);
+                start.set(Calendar.SECOND, 0);
+                selectedStartDate = start.getTimeInMillis();
+                String dateStr = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(start.getTime());
+                durStartDateBtn.setText(dateStr);
+                durStartTimeBtn.setText("00:00");
+            }
+            if (selectedDueDate == null) {
+                Calendar end = Calendar.getInstance();
+                end.set(Calendar.HOUR_OF_DAY, 23);
+                end.set(Calendar.MINUTE, 59);
+                end.set(Calendar.SECOND, 0);
+                selectedDueDate = end.getTimeInMillis();
+                String dateStr = new java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(end.getTime());
+                durEndDateBtn.setText(dateStr);
+                durEndTimeBtn.setText("23:59");
+            }
+            updateDurationLabel();
+        } else {
+            tabDate.setBackgroundResource(R.drawable.bg_tab_selected);
+            tabDate.setTextColor(getResources().getColor(android.R.color.black, null));
+            tabDuration.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            tabDuration.setTextColor(0xFF4A5565);
+            panelDate.setVisibility(View.VISIBLE);
+            panelDuration.setVisibility(View.GONE);
+        }
+    }
+
+    private void showDatePicker(boolean isStart, boolean isDuration) {
+        Long existing = isStart ? selectedStartDate : selectedDueDate;
+        long initial = existing != null ? existing : System.currentTimeMillis();
+
+        DateTimePickerBottomSheet picker = new DateTimePickerBottomSheet();
+        picker.setInitialMillis(initial);
+        picker.setListener(timeMillis -> {
+            Calendar picked = Calendar.getInstance();
+            picked.setTimeInMillis(timeMillis);
+            String dateStr = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(picked.getTime());
+            String timeStr = String.format(Locale.getDefault(), "%02d:%02d",
+                    picked.get(Calendar.HOUR_OF_DAY), picked.get(Calendar.MINUTE));
+            if (isStart) {
+                selectedStartDate = timeMillis;
+                (isDuration ? durStartDateBtn : startDateBtn).setText(dateStr);
+                (isDuration ? durStartTimeBtn : startTimeBtn).setText(timeStr);
+            } else {
+                selectedDueDate = timeMillis;
+                durEndDateBtn.setText(dateStr);
+                durEndTimeBtn.setText(timeStr);
+            }
+            updateDurationLabel();
+        });
+        picker.show(getChildFragmentManager(), "date_time_picker");
+    }
+
+    private void showTimePicker(boolean isStart, boolean isDuration) {
+        // Replaced by DateTimePickerBottomSheet — kept for compatibility
+        showDatePicker(isStart, isDuration);
+    }
+
+    private void openExtraInfo() {
+        hcmute.edu.vn.teeticktick.bottomsheet.ExtraInfoBottomSheet sheet =
+                new hcmute.edu.vn.teeticktick.bottomsheet.ExtraInfoBottomSheet();
+        sheet.setSelectedCategory(selectedCategory, selectedCategory);
+        sheet.setAssignees(assignees);
+        sheet.setConfirmListener((categoryKey, categoryName, newAssignees) -> {
+            selectedCategory = categoryKey;
+            assignees.clear();
+            assignees.addAll(newAssignees);
+            updateExtraInfoRow(categoryKey, categoryName, newAssignees);
+        });
+        sheet.show(getChildFragmentManager(), "extra_info");
+    }
+
+    private void refreshAddButton() {
+        boolean hasTitle = taskTitleInput.getText().toString().trim().length() > 0;
+        // Tab Ngày: selectedStartDate is always set (default today), so just check category + title
+        // Tab Thời lượng: both start and end are set by default when switching
+        boolean hasDate = selectedStartDate != null;
+        boolean enabled = hasTitle && categorySelected && hasDate;
+        btnAddHeader.setEnabled(enabled);
+        btnAddHeader.setAlpha(enabled ? 1f : 0.4f);
+    }
+
+    private void updateExtraInfoRow(String categoryKey, String categoryName, List<String> people) {
+        // Update icon box: use category icon + color
+        int iconRes = hcmute.edu.vn.teeticktick.utils.IconHelper.getIconDrawable(categoryKey);
+        int iconColor = hcmute.edu.vn.teeticktick.utils.IconHelper.getIconColor(categoryKey);
+        extraInfoIcon.setImageResource(iconRes);
+        extraInfoIconBox.getBackground().setTint(iconColor);
+
+        // Update label
+        String label = categoryName;
+        if (!people.isEmpty()) label += " · " + String.join(", ", people);
+        tvExtraInfo.setText(label);
+
+        // Mark category as selected and refresh button
+        categorySelected = true;
+        selectedCategory = categoryKey;
+        refreshAddButton();
+
+        // Sync chips
+        chipGroupAssignees.removeAllViews();
+        for (String name : people) {
+            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(requireContext());
+            chip.setText(name);
+            chip.setCloseIconVisible(true);
+            chip.setChipBackgroundColorResource(android.R.color.white);
+            chip.setChipStrokeWidth(1.5f);
+            chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(0xFF2B7FFF));
+            chip.setTextColor(0xFF2B7FFF);
+            chip.setOnCloseIconClickListener(v -> {
+                assignees.remove(name);
+                chipGroupAssignees.removeView(chip);
             });
-            listPicker.show(getParentFragmentManager(), "ListPicker");
-        });
-
-        addTaskButton.setOnClickListener(v -> {
-            String title = taskTitleInput.getText().toString().trim();
-            String description = taskDescriptionInput.getText().toString().trim();
-            if (title.isEmpty()) {
-                Toast.makeText(getContext(), "Vui lòng nhập tiêu đề", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (listener != null) {
-                listener.onTaskAdded(title, description, selectedEmoji, selectedCategory,
-                        selectedStartDate, selectedDueDate);
-                dismiss();
-            }
-        });
-    }
-
-    /** daysOffset: 0=today, 1=tomorrow, 7=this week end */
-    private void applyQuickDate(boolean isStart, int daysOffset) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_MONTH, daysOffset);
-        // Keep existing time if already set, otherwise default to 08:00 (start) or 23:59 (end)
-        Long existing = isStart ? selectedStartDate : selectedDueDate;
-        if (existing != null) {
-            Calendar existingCal = Calendar.getInstance();
-            existingCal.setTimeInMillis(existing);
-            cal.set(Calendar.HOUR_OF_DAY, existingCal.get(Calendar.HOUR_OF_DAY));
-            cal.set(Calendar.MINUTE, existingCal.get(Calendar.MINUTE));
-        } else {
-            cal.set(Calendar.HOUR_OF_DAY, isStart ? 8 : 23);
-            cal.set(Calendar.MINUTE, isStart ? 0 : 59);
+            chipGroupAssignees.addView(chip);
         }
-        cal.set(Calendar.SECOND, 0);
-        String dateStr = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(cal.getTime());
-        String timeStr = String.format(Locale.getDefault(), "%02d:%02d",
-                cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE));
-        if (isStart) {
-            selectedStartDate = cal.getTimeInMillis();
-            startDateBtn.setText(dateStr);
-            startTimeBtn.setText(timeStr);
-            highlightChip(startToday, startTomorrow, startPick, daysOffset);
-        } else {
-            selectedDueDate = cal.getTimeInMillis();
-            endDateBtn.setText(dateStr);
-            endTimeBtn.setText(timeStr);
-            highlightChip(endToday, endTomorrow, endThisWeek, endPick, daysOffset);
+    }
+
+    private void updateDurationLabel() {
+        if (selectedStartDate != null && selectedDueDate != null && tvDurationLabel != null) {
+            long diffMs = selectedDueDate - selectedStartDate;
+            long diffDays = diffMs / (1000 * 60 * 60 * 24);
+            long diffHours = (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60);
+            String label;
+            if (diffDays > 0) label = "Thời lượng: " + diffDays + " ngày";
+            else if (diffHours > 0) label = "Thời lượng: " + diffHours + " giờ";
+            else label = "Thời lượng: < 1 giờ";
+            tvDurationLabel.setText(label);
+            tvDurationLabel.setVisibility(View.VISIBLE);
         }
-        // Auto open time picker after quick date selection
-        showTimePickerFor(isStart);
     }
 
-    private void highlightChip(TextView today, TextView tomorrow, TextView pick, int daysOffset) {
-        resetChip(today); resetChip(tomorrow); resetChip(pick);
-        if (daysOffset == 0) selectChip(today);
-        else if (daysOffset == 1) selectChip(tomorrow);
-        else selectChip(pick);
+    private void pickContact() {
+        if (requireContext().checkSelfPermission(android.Manifest.permission.READ_CONTACTS)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{android.Manifest.permission.READ_CONTACTS}, REQUEST_CONTACT);
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_PICK,
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+        startActivityForResult(intent, REQUEST_CONTACT);
     }
 
-    private void highlightChip(TextView today, TextView tomorrow, TextView thisWeek, TextView pick, int daysOffset) {
-        resetChip(today); resetChip(tomorrow); resetChip(thisWeek); resetChip(pick);
-        if (daysOffset == 0) selectChip(today);
-        else if (daysOffset == 1) selectChip(tomorrow);
-        else if (daysOffset == 7) selectChip(thisWeek);
-        else selectChip(pick);
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CONTACT
+                && grantResults.length > 0
+                && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            pickContact();
+        } else {
+            Toast.makeText(requireContext(), "Cần quyền truy cập danh bạ", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private void selectChip(TextView chip) {
-        chip.setSelected(true);
-        chip.setTextColor(getResources().getColor(R.color.white, null));
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CONTACT && resultCode == Activity.RESULT_OK && data != null) {
+            Uri contactUri = data.getData();
+            String[] projection = {ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME};
+            try (Cursor cursor = requireContext().getContentResolver()
+                    .query(contactUri, projection, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    addAssigneeChip(cursor.getString(0));
+                }
+            } catch (Exception e) {
+                Toast.makeText(requireContext(), "Không thể đọc danh bạ", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
-    private void resetChip(TextView chip) {
-        chip.setSelected(false);
-        chip.setTextColor(getResources().getColor(R.color.text_secondary, null));
+    private void addAssigneeChip(String name) {
+        if (assignees.contains(name)) return;
+        assignees.add(name);
+
+        // Update "Thông tin thêm" label
+        TextView tvExtraInfo = getView() != null ? getView().findViewById(R.id.tv_extra_info) : null;
+        if (tvExtraInfo != null) {
+            tvExtraInfo.setText(String.join(", ", assignees));
+        }
+
+        Chip chip = new Chip(requireContext());
+        chip.setText(name);
+        chip.setCloseIconVisible(true);
+        chip.setChipBackgroundColorResource(android.R.color.white);
+        chip.setChipStrokeWidth(1.5f);
+        chip.setChipStrokeColor(android.content.res.ColorStateList.valueOf(0xFF2B7FFF));
+        chip.setTextColor(0xFF2B7FFF);
+        chip.setOnCloseIconClickListener(v -> {
+            assignees.remove(name);
+            chipGroupAssignees.removeView(chip);
+            if (tvExtraInfo != null) {
+                tvExtraInfo.setText(assignees.isEmpty() ? "Chưa thiết lập" : String.join(", ", assignees));
+            }
+        });
+        chipGroupAssignees.addView(chip);
     }
 
-    private void showDatePickerFor(boolean isStart) {
-        Calendar cal = Calendar.getInstance();
-        Long existing = isStart ? selectedStartDate : selectedDueDate;
-        if (existing != null) cal.setTimeInMillis(existing);
-
-        new DatePickerDialog(requireContext(), R.style.CustomPickerDialogTheme,
-                (view, year, month, day) -> {
-                    Calendar picked = Calendar.getInstance();
-                    if (existing != null) picked.setTimeInMillis(existing);
-                    picked.set(year, month, day);
-                    String dateStr = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(picked.getTime());
-                    if (isStart) {
-                        selectedStartDate = picked.getTimeInMillis();
-                        startDateBtn.setText(dateStr);
-                        highlightChip(startToday, startTomorrow, startPick, -1); // custom → highlight pick
-                    } else {
-                        selectedDueDate = picked.getTimeInMillis();
-                        endDateBtn.setText(dateStr);
-                        highlightChip(endToday, endTomorrow, endThisWeek, endPick, -1);
-                    }
-                    showTimePickerFor(isStart);
-                },
-                cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
-        ).show();
+    private void updateIconButton() {
+        emojiSelector.setImageResource(selectedIconRes);
+        emojiSelector.setColorFilter(android.graphics.Color.WHITE);
+        emojiSelector.getBackground().setTint(selectedIconColor);
     }
 
-    private void showTimePickerFor(boolean isStart) {
-        Calendar cal = Calendar.getInstance();
-        Long existing = isStart ? selectedStartDate : selectedDueDate;
-        if (existing != null) cal.setTimeInMillis(existing);
+    private void submitTask() {
+        String title = taskTitleInput.getText().toString().trim();
+        if (title.isEmpty()) {
+            Toast.makeText(getContext(), "Vui lòng nhập tên nhiệm vụ", Toast.LENGTH_SHORT).show();
+            taskTitleInput.requestFocus();
+            return;
+        }
+        if (!categorySelected) {
+            Toast.makeText(getContext(), "Vui lòng chọn danh mục", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String description = taskDescriptionInput.getText().toString().trim();
+        String iconName = getResources().getResourceEntryName(selectedIconRes);
+        // Encode icon color into emoji field: "iconName|#RRGGBB"
+        String iconColor = String.format("#%06X", (0xFFFFFF & selectedIconColor));
+        String emojiField = iconName + "|" + iconColor;
 
-        new android.app.TimePickerDialog(requireContext(), R.style.CustomPickerDialogTheme,
-                (view, hour, minute) -> {
-                    Calendar current = Calendar.getInstance();
-                    if (existing != null) current.setTimeInMillis(existing);
-                    current.set(Calendar.HOUR_OF_DAY, hour);
-                    current.set(Calendar.MINUTE, minute);
-                    current.set(Calendar.SECOND, 0);
-                    String timeStr = String.format(Locale.getDefault(), "%02d:%02d", hour, minute);
-                    if (isStart) {
-                        selectedStartDate = current.getTimeInMillis();
-                        startTimeBtn.setText(timeStr);
-                    } else {
-                        selectedDueDate = current.getTimeInMillis();
-                        endTimeBtn.setText(timeStr);
-                    }
-                },
-                cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true
-        ).show();
-    }
+        // Tab Ngày: dueDate = selectedStartDate (single day task)
+        // Tab Thời lượng: startDate + dueDate already set
+        Long startDate = selectedStartDate;
+        Long dueDate = isDurationMode ? selectedDueDate : selectedStartDate;
 
-    private void selectPriority(TextView selected, int priority) {
-        priorityLow.setSelected(false);
-        priorityMedium.setSelected(false);
-        priorityHigh.setSelected(false);
-        selected.setSelected(true);
-        selectedPriority = priority;
-        priorityLow.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        priorityMedium.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        priorityHigh.setTextColor(getResources().getColor(R.color.text_secondary, null));
-        selected.setTextColor(getResources().getColor(R.color.white, null));
+        if (listener != null) {
+            listener.onTaskAdded(title, description, emojiField, selectedCategory, startDate, dueDate);
+            dismiss();
+        }
     }
 
     @Override
     public void onDismiss(@NonNull android.content.DialogInterface dialog) {
         super.onDismiss(dialog);
-        // Restore toolbar and FAB in MainActivity
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).restoreToolbarAndFab();
         }

@@ -134,7 +134,7 @@ public class NotificationHelper {
         
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, channelId)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(emoji + " " + title)
+                .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)
@@ -154,7 +154,7 @@ public class NotificationHelper {
         );
         return new NotificationCompat.Builder(context, CHANNEL_OVERDUE)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(emoji + " " + title)
+                .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent)

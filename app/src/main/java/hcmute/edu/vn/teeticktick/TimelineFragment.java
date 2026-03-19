@@ -290,19 +290,9 @@ public class TimelineFragment extends Fragment {
         binding.ganttContainer.setVisibility(View.VISIBLE);
     }
 
-    /**
-     * Place pill bars using hour-based positioning within each day column.
-     * leftPx  = dayCol * colPx + (startHourFraction * colPx)
-     * barWidth = durationFraction * colPx  (clamped to visible window)
-     * Multiple tasks on same day stack vertically.
-     */
     private void placeSpannedBars(FrameLayout row, List<TaskEntity> tasks,
                                    long weekStartMs, long dayMs, int colPx, int categoryIdx) {
         if (tasks == null || tasks.isEmpty()) return;
-
-        int bgColor     = CATEGORY_BAR_BG[categoryIdx];
-        int textColor   = CATEGORY_BAR_TEXT[categoryIdx];
-        int strokeColor = CATEGORY_BAR_STROKE[categoryIdx];
 
         boolean showTimeMode = effectiveColumnWidthDp() >= 110;
         int rowH      = row.getHeight() > 0 ? row.getHeight() : dpToPx(72);
@@ -322,7 +312,6 @@ public class TimelineFragment extends Fragment {
             dayTotalCount.put(dayCol, (dayTotalCount.containsKey(dayCol) ? dayTotalCount.get(dayCol) : 0) + 1);
         }
 
-        // Per-day stack counter: key = day index (0-6)
         Map<Integer, Integer> dayStackCount = new HashMap<>();
 
         for (TaskEntity task : tasks) {
@@ -332,76 +321,68 @@ public class TimelineFragment extends Fragment {
             long taskStartMs = task.getStartDate() != null ? task.getStartDate() : startOfDay(taskEndMs);
             if (taskEndMs <= weekStartMs || taskStartMs >= weekStartMs + NUM_DAYS * dayMs) continue;
 
+            // Detect all-day task: startDate == dueDate (tab Ngày)
+            boolean isAllDay = taskStartMs == taskEndMs;
+
             // Clamp to visible week window
             long visStart = Math.max(taskStartMs, weekStartMs);
             long visEnd   = Math.min(taskEndMs, weekStartMs + NUM_DAYS * dayMs);
-            if (visEnd <= visStart) continue;
+            if (!isAllDay && visEnd <= visStart) continue;
 
-            // Day column based on which calendar day the task starts
             int startDayCol = (int) ((visStart - weekStartMs) / dayMs);
             startDayCol = Math.max(0, Math.min(startDayCol, NUM_DAYS - 1));
 
             long dayStartMs = weekStartMs + (long) startDayCol * dayMs;
             long dayEndMs   = dayStartMs + dayMs;
-            boolean sameDay = visEnd <= dayEndMs;
+            boolean sameDay = isAllDay || visEnd <= dayEndMs;
 
-            // Hour-based positioning only when zoomed in enough (≥ 200dp/col)
-            boolean useHourPosition = effectiveColumnWidthDp() >= 200;
+            boolean useHourPosition = !isAllDay && effectiveColumnWidthDp() >= 200;
+            float startFraction = useHourPosition ? (float)(visStart - dayStartMs) / dayMs : 0f;
 
-            float startFraction = useHourPosition
-                    ? (float)(visStart - dayStartMs) / dayMs
-                    : 0f;
+            // Resolve task icon color from emoji field ("iconName|#RRGGBB")
+            int taskIconColor = resolveTaskColor(task, categoryIdx);
+            // Pill bg: task icon color at ~25% opacity; stroke: full opacity
+            int bgColor     = (taskIconColor & 0x00FFFFFF) | 0x40000000; // ~25% alpha
+            int strokeColor = taskIconColor;
+            int textColor   = taskIconColor;
 
-            // Duration fraction
-            float durationFraction;
-            if (sameDay) {
-                // Same-day: fill from startFraction to end of task, capped at column boundary
-                float endFraction = useHourPosition
-                        ? (float)(visEnd - dayStartMs) / dayMs
-                        : 1f;
-                durationFraction = endFraction - startFraction;
-            } else {
-                durationFraction = (float)(visEnd - visStart) / dayMs;
-                float maxFraction = NUM_DAYS - startDayCol - startFraction;
-                durationFraction = Math.min(durationFraction, maxFraction);
-            }
-            durationFraction = Math.max(durationFraction, 1f / 24f);
-
+            // Bar width
             int leftPx = (int)(startDayCol * colPx + startFraction * colPx) + dpToPx(2);
-            // Column right boundary (with padding)
             int colRightPx = (startDayCol + 1) * colPx - dpToPx(4);
             int maxBarWidth = colRightPx - leftPx;
-            if (maxBarWidth < dpToPx(8)) continue; // column too narrow to show anything
+            if (maxBarWidth < dpToPx(8)) continue;
 
             int barWidth;
-            if (sameDay) {
-                // Same-day: fill proportionally but NEVER exceed column boundary
+            if (isAllDay) {
+                // All-day: always fill the full column regardless of zoom
+                barWidth = maxBarWidth;
+            } else if (sameDay) {
+                float endFraction = useHourPosition ? (float)(visEnd - dayStartMs) / dayMs : 1f;
+                float durationFraction = endFraction - startFraction;
+                durationFraction = Math.max(durationFraction, 1f / 24f);
                 int desired = (int)(durationFraction * colPx) - dpToPx(4);
                 barWidth = Math.min(desired, maxBarWidth);
-                // Apply min width only if it still fits in column
                 if (barWidth < dpToPx(48) && maxBarWidth >= dpToPx(48)) barWidth = dpToPx(48);
-                barWidth = Math.min(barWidth, maxBarWidth); // final hard cap
+                barWidth = Math.min(barWidth, maxBarWidth);
             } else {
-                // Multi-day: can span across columns
+                float durationFraction = (float)(visEnd - visStart) / dayMs;
+                float maxFraction = NUM_DAYS - startDayCol - startFraction;
+                durationFraction = Math.min(durationFraction, maxFraction);
+                durationFraction = Math.max(durationFraction, 1f / 24f);
                 barWidth = Math.max((int)(durationFraction * colPx) - dpToPx(4), dpToPx(48));
             }
 
-            // Stack: count tasks already placed on the start day
             int stack = dayStackCount.containsKey(startDayCol) ? dayStackCount.get(startDayCol) : 0;
             dayStackCount.put(startDayCol, stack + 1);
 
-            // Vertical centering: offset the whole group to center in row
             int totalInDay = dayTotalCount.containsKey(startDayCol) ? dayTotalCount.get(startDayCol) : 1;
             int groupHeight = totalInDay * barH + (totalInDay - 1) * dpToPx(4);
             int centerOffset = Math.max(0, (rowH - groupHeight) / 2);
 
-            // Skip if overflows row
             int topMargin = centerOffset + stack * stackStep;
             if (topMargin + barH > rowH - dpToPx(2)) continue;
 
-            // Build pill
-            // Show time label when pill is wide enough to display it (≥ 60dp)
-            boolean showTime = barWidth >= dpToPx(60);
+            boolean showTime = barWidth >= dpToPx(60); // show for both all-day and timed tasks
 
             android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
             shape.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
@@ -410,13 +391,38 @@ public class TimelineFragment extends Fragment {
             shape.setStroke(dpToPx(1), strokeColor);
 
             LinearLayout pill = new LinearLayout(requireContext());
-            pill.setOrientation(LinearLayout.VERTICAL);
+            pill.setOrientation(LinearLayout.HORIZONTAL);
             pill.setGravity(Gravity.CENTER);
-            pill.setPaddingRelative(dpToPx(6), dpToPx(2), dpToPx(6), dpToPx(2));
+            pill.setPaddingRelative(dpToPx(5), dpToPx(2), dpToPx(5), dpToPx(2));
             pill.setBackground(shape);
 
+            // Icon — white so it pops against the tinted background
+            String emojiField = task.getEmoji();
+            String iconName = emojiField != null && emojiField.contains("|")
+                    ? emojiField.split("\\|")[0] : emojiField;
+            if (iconName != null && !iconName.isEmpty()) {
+                int resId = requireContext().getResources().getIdentifier(
+                        iconName, "drawable", requireContext().getPackageName());
+                if (resId != 0) {
+                    android.widget.ImageView ivIcon = new android.widget.ImageView(requireContext());
+                    int iconSz = dpToPx(12);
+                    LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(iconSz, iconSz);
+                    iconLp.setMarginEnd(dpToPx(3));
+                    ivIcon.setLayoutParams(iconLp);
+                    ivIcon.setImageResource(resId);
+                    ivIcon.setColorFilter(android.graphics.Color.WHITE);
+                    pill.addView(ivIcon);
+                }
+            }
+
+            // Text column — centered
+            LinearLayout textCol = new LinearLayout(requireContext());
+            textCol.setOrientation(LinearLayout.VERTICAL);
+            textCol.setGravity(Gravity.CENTER);
+            textCol.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
             TextView tvTitle = new TextView(requireContext());
-            tvTitle.setText(buildLabel(task));
+            tvTitle.setText(task.getTitle() != null ? task.getTitle() : "");
             tvTitle.setTextColor(textColor);
             tvTitle.setTextSize(11f);
             tvTitle.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
@@ -424,26 +430,24 @@ public class TimelineFragment extends Fragment {
             tvTitle.setEllipsize(TextUtils.TruncateAt.END);
             tvTitle.setIncludeFontPadding(false);
             tvTitle.setGravity(Gravity.CENTER);
-            tvTitle.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            pill.addView(tvTitle);
+            textCol.addView(tvTitle);
 
             if (showTime) {
                 TextView tvTime = new TextView(requireContext());
                 tvTime.setText(buildTimeLabel(task));
-                tvTime.setTextColor(0xFF888888);
+                tvTime.setTextColor((textColor & 0x00FFFFFF) | 0xAA000000);
                 tvTime.setTextSize(9f);
-                tvTime.setGravity(Gravity.CENTER);
-                tvTime.setTypeface(android.graphics.Typeface.DEFAULT);
                 tvTime.setSingleLine(true);
                 tvTime.setEllipsize(TextUtils.TruncateAt.END);
                 tvTime.setIncludeFontPadding(false);
+                tvTime.setGravity(Gravity.CENTER);
                 LinearLayout.LayoutParams timeLp = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 timeLp.topMargin = dpToPx(1);
                 tvTime.setLayoutParams(timeLp);
-                pill.addView(tvTime);
+                textCol.addView(tvTime);
             }
+            pill.addView(textCol);
 
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(barWidth, ViewGroup.LayoutParams.WRAP_CONTENT);
             lp.leftMargin = leftPx;
@@ -470,6 +474,17 @@ public class TimelineFragment extends Fragment {
         }
     }
 
+    /** Resolve the task's icon color from emoji field, fallback to category color. */
+    private int resolveTaskColor(TaskEntity task, int categoryIdx) {
+        String emojiField = task.getEmoji();
+        if (emojiField != null && emojiField.contains("|")) {
+            String colorHex = emojiField.split("\\|")[1];
+            try { return android.graphics.Color.parseColor(colorHex); } catch (Exception ignored) {}
+        }
+        // Fallback: category stroke color
+        return CATEGORY_BAR_STROKE[categoryIdx];
+    }
+
     private void showTaskPreviewPopup(TaskEntity task, View anchor, int bgColor, int textColor, int strokeColor) {
         View popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_task_preview, null);
 
@@ -492,18 +507,27 @@ public class TimelineFragment extends Fragment {
         popupView.setBackground(bg);
 
         // Populate views
-        TextView tvEmoji = popupView.findViewById(R.id.popup_emoji);
         TextView tvTitle = popupView.findViewById(R.id.popup_title);
         TextView tvTime  = popupView.findViewById(R.id.popup_time);
         TextView tvDesc  = popupView.findViewById(R.id.popup_description);
         TextView tvHint  = popupView.findViewById(R.id.popup_hint);
+        android.widget.ImageView ivEmoji = popupView.findViewById(R.id.popup_emoji);
 
-        String emoji = task.getEmoji();
-        if (emoji != null && !emoji.isEmpty()) {
-            tvEmoji.setText(emoji);
-            tvEmoji.setVisibility(View.VISIBLE);
+        String emojiField = task.getEmoji();
+        // emojiField is "iconName|#color" — show icon drawable in popup
+        if (emojiField != null && !emojiField.isEmpty()) {
+            String iconName = emojiField.contains("|") ? emojiField.split("\\|")[0] : emojiField;
+            int resId = requireContext().getResources().getIdentifier(
+                    iconName, "drawable", requireContext().getPackageName());
+            if (resId != 0) {
+                ivEmoji.setImageResource(resId);
+                ivEmoji.setColorFilter(textColor);
+                ivEmoji.setVisibility(View.VISIBLE);
+            } else {
+                ivEmoji.setVisibility(View.GONE);
+            }
         } else {
-            tvEmoji.setVisibility(View.GONE);
+            ivEmoji.setVisibility(View.GONE);
         }
 
         tvTitle.setText(task.getTitle() != null ? task.getTitle() : "");
@@ -562,17 +586,20 @@ public class TimelineFragment extends Fragment {
     }
 
     private String buildLabel(TaskEntity task) {
-        String e = task.getEmoji();
-        String t = task.getTitle() != null ? task.getTitle() : "";
-        return (e != null && !e.isEmpty()) ? e + " " + t : t;
+        return task.getTitle() != null ? task.getTitle() : "";
     }
 
     private String buildTimeLabel(TaskEntity task) {
         SimpleDateFormat timeFmt = new SimpleDateFormat("HH:mm", Locale.getDefault());
         SimpleDateFormat dateFmt = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
-        long taskEndMs   = task.getDueDate() != null ? task.getDueDate() : task.getCreatedAt();
-        Long startDate   = task.getStartDate();
+        long taskEndMs = task.getDueDate() != null ? task.getDueDate() : task.getCreatedAt();
+        Long startDate = task.getStartDate();
+
+        // All-day task: startDate == dueDate
+        if (startDate != null && startDate.equals(task.getDueDate())) {
+            return dateFmt.format(new Date(taskEndMs));
+        }
 
         if (startDate != null) {
             boolean multiDay = startOfDay(taskEndMs) > startOfDay(startDate);
@@ -585,7 +612,6 @@ public class TimelineFragment extends Fragment {
                      + " – " + timeFmt.format(new Date(taskEndMs));
             }
         }
-        // No start date — just show deadline
         return dateFmt.format(new Date(taskEndMs)) + "  " + timeFmt.format(new Date(taskEndMs));
     }
 

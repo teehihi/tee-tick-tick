@@ -66,7 +66,18 @@ public class SmartListSettingsActivity extends AppCompatActivity {
     }
 
     private void savePreference(String title, boolean isVisible) {
-        String key = "smart_" + title.toLowerCase().replace(" ", "_");
+        // Map title to fixed key (title may be localized, keys must be stable)
+        String key;
+        // Match by title string against known smart list names
+        if (title.equals(getString(R.string.smart_list_all)))           key = "smart_all";
+        else if (title.equals(getString(R.string.smart_list_today)))    key = "smart_today";
+        else if (title.equals(getString(R.string.smart_list_tomorrow))) key = "smart_tomorrow";
+        else if (title.equals(getString(R.string.smart_list_next_7_days))) key = "smart_next_7_days";
+        else if (title.equals(getString(R.string.smart_list_assigned_to_me))) key = "smart_assigned_to_me";
+        else if (title.equals(getString(R.string.smart_list_inbox)))    key = "smart_inbox";
+        else if (title.equals(getString(R.string.smart_list_completed))) key = "smart_completed";
+        else if (title.equals(getString(R.string.smart_list_wont_do)))  key = "smart_won't_do";
+        else key = "smart_" + title.toLowerCase().replace(" ", "_"); // fallback
         prefs.edit().putBoolean(key, isVisible).apply();
     }
 }
