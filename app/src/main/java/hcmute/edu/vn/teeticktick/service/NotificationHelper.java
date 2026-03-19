@@ -41,12 +41,13 @@ public class NotificationHelper {
             reminderChannel.enableVibration(true);
             manager.createNotificationChannel(reminderChannel);
             
-            // Create category-specific channels with custom sounds
-            createCategoryChannel(context, manager, CHANNEL_INBOX, "Nhắc nhở - Inbox", "default");
-            createCategoryChannel(context, manager, CHANNEL_WORK, "Nhắc nhở - Công việc", "sound_1");
-            createCategoryChannel(context, manager, CHANNEL_PERSONAL, "Nhắc nhở - Cá nhân", "sound_2");
-            createCategoryChannel(context, manager, CHANNEL_SHOPPING, "Nhắc nhở - Mua sắm", "sound_3");
-            createCategoryChannel(context, manager, CHANNEL_LEARNING, "Nhắc nhở - Học tập", "sound_4");
+            // Create category-specific channels — all use the same custom sound
+            String sharedSoundId = "reminder";
+            createCategoryChannel(context, manager, CHANNEL_INBOX,    "Nhắc nhở - Inbox",     sharedSoundId);
+            createCategoryChannel(context, manager, CHANNEL_WORK,     "Nhắc nhở - Công việc", sharedSoundId);
+            createCategoryChannel(context, manager, CHANNEL_PERSONAL, "Nhắc nhở - Cá nhân",   sharedSoundId);
+            createCategoryChannel(context, manager, CHANNEL_SHOPPING, "Nhắc nhở - Mua sắm",   sharedSoundId);
+            createCategoryChannel(context, manager, CHANNEL_LEARNING, "Nhắc nhở - Học tập",   sharedSoundId);
 
             // Channel for daily summary (foreground service)
             NotificationChannel dailyChannel = new NotificationChannel(

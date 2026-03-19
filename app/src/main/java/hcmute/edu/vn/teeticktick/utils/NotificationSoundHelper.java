@@ -64,23 +64,26 @@ public class NotificationSoundHelper {
         if (soundId == null || soundId.equals("default")) {
             return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         }
-        
-        // Try to get the resource ID
+
         try {
-            int resId = context.getResources().getIdentifier(
-                soundId.replace("sound_", "notification_sound_"),
-                "raw",
-                context.getPackageName()
-            );
-            
+            // Try exact resource name first (e.g. "reminder" → res/raw/reminder.mp3)
+            int resId = context.getResources().getIdentifier(soundId, "raw", context.getPackageName());
+
+            // Fallback: legacy mapping "sound_1" → "notification_sound_1"
+            if (resId == 0) {
+                resId = context.getResources().getIdentifier(
+                    soundId.replace("sound_", "notification_sound_"),
+                    "raw", context.getPackageName()
+                );
+            }
+
             if (resId != 0) {
                 return Uri.parse("android.resource://" + context.getPackageName() + "/" + resId);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        // Fallback to default
+
         return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
     }
     
