@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="16dp">
 
         <!-- Time indicator -->
@@ -51,13 +52,13 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <com.vanniktech.emoji.EmojiTextView
+                <ImageView
                     android:id="@+id/task_emoji"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="💼"
-                    android:textSize="18sp"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_gravity="center_vertical"
+                    android:scaleType="fitCenter" />
 
                 <TextView
                     android:id="@+id/task_title"

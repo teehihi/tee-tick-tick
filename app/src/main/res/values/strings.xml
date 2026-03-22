@@ -77,6 +77,11 @@
     <string name="english">Tiếng Anh</string>
     <string name="select_language">Chọn ngôn ngữ</string>
     
+    <!-- Onboarding & Splash -->
+    <string name="skip">Bỏ qua</string>
+    <string name="next">Tiếp theo</string>
+    <string name="splash_tagline">Quản lý công việc thông minh</string>
+
     <!-- Bottom Navigation -->
     <string name="nav_tasks">Nhiệm vụ</string>
     <string name="nav_calendar">Lịch</string>

@@ -81,7 +81,81 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
         initViews(view);
         setupClickListeners();
         expandToFullScreen();
-        taskTitleInput.requestFocus();
+
+        // Edit mode: pre-fill if editTaskId passed
+        Bundle args = getArguments();
+        if (args != null && args.containsKey("editTaskId")) {
+            prefillEditMode(view, args);
+        } else {
+            taskTitleInput.requestFocus();
+        }
+    }
+
+    private void prefillEditMode(View view, Bundle args) {
+        // Change header title and button
+        TextView headerTitle = view.findViewById(R.id.tv_sheet_title);
+        if (headerTitle != null) headerTitle.setText("Chỉnh sửa task");
+        btnAddHeader.setText("Lưu");
+
+        String title = args.getString("editTitle", "");
+        String desc = args.getString("editDescription", "");
+        String emoji = args.getString("editEmoji", "");
+        String listName = args.getString("editListName", "");
+        long startDate = args.getLong("editStartDate", 0);
+        long dueDate = args.getLong("editDueDate", 0);
+
+        taskTitleInput.setText(title);
+        taskTitleInput.setSelection(title.length());
+        taskDescriptionInput.setText(desc);
+
+        // Parse icon
+        if (emoji != null && !emoji.isEmpty()) {
+            String iconName = emoji.contains("|") ? emoji.split("\\|")[0] : emoji;
+            String colorHex = emoji.contains("|") ? emoji.split("\\|")[1] : null;
+            int resId = requireContext().getResources().getIdentifier(
+                    iconName, "drawable", requireContext().getPackageName());
+            if (resId != 0) selectedIconRes = resId;
+            if (colorHex != null) {
+                try { selectedIconColor = android.graphics.Color.parseColor(colorHex); } catch (Exception ignored) {}
+            }
+            updateIconButton();
+        }
+
+        // Pre-fill category
+        if (listName != null && !listName.isEmpty()) {
+            selectedCategory = listName;
+            categorySelected = true;
+            updateExtraInfoRow(listName, listName, assignees);
+        }
+
+        // Pre-fill dates
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        if (startDate != 0 && dueDate != 0 && startDate != dueDate) {
+            // Duration mode
+            switchTab(true);
+            selectedStartDate = startDate;
+            selectedDueDate = dueDate;
+            Calendar cs = Calendar.getInstance(); cs.setTimeInMillis(startDate);
+            Calendar ce = Calendar.getInstance(); ce.setTimeInMillis(dueDate);
+            durStartDateBtn.setText(sdf.format(cs.getTime()));
+            durStartTimeBtn.setText(String.format(Locale.getDefault(), "%02d:%02d",
+                    cs.get(Calendar.HOUR_OF_DAY), cs.get(Calendar.MINUTE)));
+            durEndDateBtn.setText(sdf.format(ce.getTime()));
+            durEndTimeBtn.setText(String.format(Locale.getDefault(), "%02d:%02d",
+                    ce.get(Calendar.HOUR_OF_DAY), ce.get(Calendar.MINUTE)));
+            updateDurationLabel();
+        } else if (startDate != 0) {
+            selectedStartDate = startDate;
+            Calendar cs = Calendar.getInstance(); cs.setTimeInMillis(startDate);
+            startDateBtn.setText(sdf.format(cs.getTime()));
+            startTimeBtn.setText(String.format(Locale.getDefault(), "%02d:%02d",
+                    cs.get(Calendar.HOUR_OF_DAY), cs.get(Calendar.MINUTE)));
+        }
+
+        refreshAddButton();
+        // Enable save even without re-selecting category
+        btnAddHeader.setEnabled(true);
+        btnAddHeader.setAlpha(1f);
     }
 
     private void expandToFullScreen() {
@@ -441,7 +515,22 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onDismiss(@NonNull android.content.DialogInterface dialog) {
         super.onDismiss(dialog);
+        // Don't restore toolbar if called from TaskDetailFragment
+        Bundle args = getArguments();
+        if (args != null && args.getBoolean("calledFromDetail", false)) {
+            return;
+        }
+        // Only restore toolbar if NOT inside TaskDetailFragment
         if (getActivity() instanceof MainActivity) {
+            androidx.navigation.NavController nav = null;
+            try {
+                nav = androidx.navigation.Navigation.findNavController(
+                        getActivity(), R.id.nav_host_fragment_content_main);
+            } catch (Exception ignored) {}
+            if (nav != null && nav.getCurrentDestination() != null
+                    && nav.getCurrentDestination().getId() == R.id.TaskDetailFragment) {
+                return; // Don't restore — TaskDetailFragment manages its own toolbar state
+            }
             ((MainActivity) getActivity()).restoreToolbarAndFab();
         }
     }

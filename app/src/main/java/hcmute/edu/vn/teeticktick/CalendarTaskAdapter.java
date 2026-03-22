@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,9 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 
 import hcmute.edu.vn.teeticktick.database.TaskEntity;
+import hcmute.edu.vn.teeticktick.utils.IconHelper;
 
 public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapter.ViewHolder> {
 
@@ -65,10 +66,24 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         TaskEntity task = tasks.get(position);
         
-        // Set emoji
-        if (task.getEmoji() != null && !task.getEmoji().isEmpty()) {
-            holder.taskEmoji.setText(task.getEmoji());
-            holder.taskEmoji.setVisibility(View.VISIBLE);
+        // Set emoji/icon
+        String emojiField = task.getEmoji();
+        if (emojiField != null && !emojiField.isEmpty()) {
+            String iconName = emojiField.contains("|") ? emojiField.split("\\|")[0] : emojiField;
+            String colorHex = emojiField.contains("|") ? emojiField.split("\\|")[1] : null;
+            int resId = holder.taskEmoji.getContext().getResources().getIdentifier(
+                    iconName, "drawable", holder.taskEmoji.getContext().getPackageName());
+            if (resId != 0) {
+                holder.taskEmoji.setImageResource(resId);
+                int color;
+                try { color = colorHex != null ? android.graphics.Color.parseColor(colorHex)
+                        : IconHelper.getIconColor(iconName.startsWith("ic_ios_") ? iconName.substring(7) : iconName);
+                } catch (Exception e) { color = 0xFF2B7FFF; }
+                holder.taskEmoji.setColorFilter(color);
+                holder.taskEmoji.setVisibility(View.VISIBLE);
+            } else {
+                holder.taskEmoji.setVisibility(View.GONE);
+            }
         } else {
             holder.taskEmoji.setVisibility(View.GONE);
         }
@@ -138,7 +153,7 @@ public class CalendarTaskAdapter extends RecyclerView.Adapter<CalendarTaskAdapte
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView taskTime;
-        TextView taskEmoji;
+        ImageView taskEmoji;
         TextView taskTitle;
         TextView taskCategory;
         View timeIndicator;

@@ -500,6 +500,11 @@ public class MainActivity extends AppCompatActivity {
         binding.fab.setVisibility(View.VISIBLE);
     }
 
+    public void hideToolbarAndFab() {
+        binding.toolbar.setVisibility(View.GONE);
+        binding.fab.setVisibility(View.GONE);
+    }
+
     private void addTaskToFragment(String title, String description, String emoji, String listName, Long startDate, Long dueDate) {
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment_content_main);
         if (navHostFragment != null) {
