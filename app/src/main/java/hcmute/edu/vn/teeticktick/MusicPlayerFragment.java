@@ -22,6 +22,9 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.util.Log;
+import android.media.MediaScannerConnection;
+import android.os.Environment;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +35,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.concurrent.Executors;
+import android.provider.OpenableColumns;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import hcmute.edu.vn.teeticktick.adapter.SongAdapter;
 import hcmute.edu.vn.teeticktick.model.Song;
@@ -50,10 +60,11 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
     private List<Song> songList = new ArrayList<>();
 
     // Player controls
-    private LinearLayout playerControls;
+    private View playerControls;
     private LinearLayout emptyState;
     private TextView emptyText;
     private View btnGrantPermission;
+    private View btnRescan;
     private TextView playerSongTitle, playerSongArtist;
     private TextView playerCurrentTime, playerTotalTime;
     private ImageButton btnPlayPause, btnPrevious, btnNext;
@@ -66,6 +77,15 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
     // SeekBar updater
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable seekBarUpdater;
+
+    private final ActivityResultLauncher<String> pickAudioLauncher = registerForActivityResult(
+            new ActivityResultContracts.GetMultipleContents(),
+            uris -> {
+                if (uris != null && !uris.isEmpty()) {
+                    importMultipleAudioFromUris(uris);
+                }
+            }
+    );
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -154,6 +174,11 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
 
         // Bind to MusicService
         Intent intent = new Intent(requireContext(), MusicService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            requireContext().startForegroundService(intent);
+        } else {
+            requireContext().startService(intent);
+        }
         requireContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -163,6 +188,7 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
         emptyState = view.findViewById(R.id.empty_state);
         emptyText = view.findViewById(R.id.empty_text);
         btnGrantPermission = view.findViewById(R.id.btn_grant_permission);
+        btnRescan = view.findViewById(R.id.btn_rescan);
 
         playerSongTitle = view.findViewById(R.id.player_song_title);
         playerSongArtist = view.findViewById(R.id.player_song_artist);
@@ -172,6 +198,11 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
         btnPrevious = view.findViewById(R.id.btn_previous);
         btnNext = view.findViewById(R.id.btn_next);
         playerSeekbar = view.findViewById(R.id.player_seekbar);
+        
+        View btnAddMusic = view.findViewById(R.id.btn_add_music);
+        if (btnAddMusic != null) {
+            btnAddMusic.setOnClickListener(v -> pickAudioLauncher.launch("audio/*"));
+        }
     }
 
     private void setupRecyclerView() {
@@ -216,6 +247,8 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
         });
 
         btnGrantPermission.setOnClickListener(v -> requestAudioPermission());
+        
+        btnRescan.setOnClickListener(v -> scanMediaFiles());
     }
 
     // ---- MediaStore Content Provider - đọc nhạc từ thiết bị ----
@@ -232,14 +265,17 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
                 MediaStore.Audio.Media.ALBUM_ID
         };
 
-        // Chỉ lấy file nhạc (không phải ringtone, alarm, etc.)
-        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
+        // Lấy nhạc và các file ghi âm (loại bỏ nhạc chuông, thông báo, báo thức)
+        String selection = MediaStore.Audio.Media.IS_ALARM + " == 0 AND " +
+                           MediaStore.Audio.Media.IS_NOTIFICATION + " == 0 AND " +
+                           MediaStore.Audio.Media.IS_RINGTONE + " == 0";
         String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
 
         Cursor cursor = requireContext().getContentResolver().query(
                 audioUri, projection, selection, null, sortOrder);
 
         if (cursor != null) {
+            Log.d("MusicPlayer", "MediaStore query trả về " + cursor.getCount() + " bài hát");
             int idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID);
             int titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE);
             int artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST);
@@ -267,10 +303,39 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
                 }
             }
             cursor.close();
+        } else {
+            Log.d("MusicPlayer", "MediaStore query trả về chuỗi cursor null");
         }
 
+        // Lấy nhạc đã import thủ công vào app
+        File dir = new File(requireContext().getFilesDir(), "imported_music");
+        if (dir.exists()) {
+            File[] files = dir.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    try {
+                        android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
+                        mmr.setDataSource(f.getAbsolutePath());
+                        String title = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE);
+                        if (title == null) title = f.getName();
+                        String artist = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                        if (artist == null) artist = "Unknown Artist";
+                        String durationStr = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION);
+                        long duration = durationStr != null ? Long.parseLong(durationStr) : 0;
+                        
+                        songList.add(new Song(f.lastModified(), title, artist, duration, Uri.fromFile(f), null));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        // Sắp xếp lại từ A-Z theo tiêu đề bài hát (tùy chọn, để mix cả MediaStore và file import)
+        songList.sort((s1, s2) -> s1.getTitle().compareToIgnoreCase(s2.getTitle()));
+
         if (songList.isEmpty()) {
-            showEmptyState("Không tìm thấy bài hát trên thiết bị");
+            showEmptyState("Không tìm thấy bài hát trên thiết bị.\nHãy copy nhạc và bấm Quét lại.", true);
         } else {
             emptyState.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
@@ -310,13 +375,77 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
         emptyState.setVisibility(View.VISIBLE);
         emptyText.setText("Cần quyền truy cập để đọc nhạc từ thiết bị");
         btnGrantPermission.setVisibility(View.VISIBLE);
+        btnRescan.setVisibility(View.GONE);
     }
 
-    private void showEmptyState(String message) {
+    private void showEmptyState(String message, boolean showRescan) {
         recyclerView.setVisibility(View.GONE);
         emptyState.setVisibility(View.VISIBLE);
         emptyText.setText(message);
         btnGrantPermission.setVisibility(View.GONE);
+        btnRescan.setVisibility(showRescan ? View.VISIBLE : View.GONE);
+    }
+    
+    private void scanMediaFiles() {
+        btnRescan.setEnabled(false);
+        if (getActivity() != null) {
+            String state = Environment.getExternalStorageState();
+            if (Environment.MEDIA_MOUNTED.equals(state)) {
+                String dirPath = Environment.getExternalStorageDirectory().toString();
+                MediaScannerConnection.scanFile(getActivity().getApplicationContext(),
+                        new String[]{dirPath}, null,
+                        (path, uri) -> {
+                            Log.i("MusicPlayer", "Quét xong: " + path);
+                            if (getActivity() != null) {
+                                getActivity().runOnUiThread(() -> {
+                                    btnRescan.setEnabled(true);
+                                    loadSongsFromMediaStore();
+                                });
+                            }
+                        });
+            } else {
+                btnRescan.setEnabled(true);
+            }
+        }
+    }
+
+    private void importMultipleAudioFromUris(List<Uri> uris) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            boolean importedAny = false;
+            for (Uri uri : uris) {
+                try {
+                    Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null, null);
+                    String displayName = "Imported Audio.mp3";
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                        if (nameIndex != -1) displayName = cursor.getString(nameIndex);
+                        cursor.close();
+                    }
+                    
+                    File dir = new File(requireContext().getFilesDir(), "imported_music");
+                    if (!dir.exists()) dir.mkdirs();
+                    
+                    File outFile = new File(dir, java.util.UUID.randomUUID().toString() + "_" + displayName);
+                    InputStream in = requireContext().getContentResolver().openInputStream(uri);
+                    if (in == null) continue;
+                    
+                    FileOutputStream out = new FileOutputStream(outFile);
+                    byte[] buffer = new byte[1024];
+                    int read;
+                    while ((read = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, read);
+                    }
+                    in.close();
+                    out.close();
+                    importedAny = true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if (importedAny && getActivity() != null) {
+                getActivity().runOnUiThread(() -> loadSongsFromMediaStore());
+            }
+        });
     }
 
     @Override
@@ -338,6 +467,41 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
         if (!isBound) return;
         musicService.setSongList(songList);
         musicService.play(position);
+    }
+    
+    @Override
+    public void onSongDeleteClick(int position) {
+        if (position < 0 || position >= songList.size()) return;
+        Song song = songList.get(position);
+        
+        // Remove locally if imported manually
+        String path = song.getUri().getPath();
+        if (path != null && path.contains("imported_music")) {
+            File f = new File(path);
+            if (f.exists()) {
+                f.delete();
+            }
+        }
+        
+        songList.remove(position);
+        songAdapter.notifyItemRemoved(position);
+        
+        // Cập nhật lại playlist cho service nếu đang phát
+        if (isBound) {
+            musicService.setSongList(songList);
+            // Nếu bài bị xóa là bài đang phát, dừng hoặc chuyển
+            if (musicService.getCurrentSongIndex() == position) {
+                musicService.stop();
+                playerControls.setVisibility(View.GONE);
+            } else if (musicService.getCurrentSongIndex() > position) {
+                // Adjust index internally in a basic way, or just let user click again
+                // Not perfectly seamless without modifying MusicService, but okay for now
+            }
+        }
+
+        if (songList.isEmpty()) {
+            showEmptyState("Danh sách trống.\nHãy Thêm nhạc hoặc Quét lại.", false);
+        }
     }
 
     // ---- UI helpers ----

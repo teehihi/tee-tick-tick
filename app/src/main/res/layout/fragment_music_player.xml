@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -39,6 +40,50 @@
             android:layout_marginTop="16dp"
             android:visibility="gone"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_rescan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/rescan_music"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:tooltipText="@string/rescan_music_desc"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
+    </LinearLayout>
+
+    <!-- Header with Add Music Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:background="@color/card_bg"
+        android:elevation="2dp">
+        
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tất cả bài hát"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+            
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_add_music"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thêm file"
+            android:textColor="#000000"
+            app:iconTint="#000000"
+            app:backgroundTint="#F2F2F2"
+            app:strokeColor="#DDDDDD"
+            app:strokeWidth="1dp"
+            app:cornerRadius="8dp"
+            android:layout_marginStart="8dp"
+            app:icon="@android:drawable/ic_input_add" />
     </LinearLayout>
 
     <!-- Song List -->
@@ -52,15 +97,23 @@
         android:paddingBottom="8dp" />
 
     <!-- Player Controls Bar -->
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:id="@+id/player_controls"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/card_bg"
-        android:elevation="8dp"
-        android:visibility="gone"
-        android:padding="12dp">
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="80dp"
+        app:cardBackgroundColor="@color/card_bg"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
 
         <!-- Song info row -->
         <LinearLayout
@@ -169,6 +222,7 @@
                 android:textSize="11sp"
                 android:textColor="@color/text_secondary" />
         </LinearLayout>
-    </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

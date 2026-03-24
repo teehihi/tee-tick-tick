@@ -14,6 +14,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
+import androidx.core.app.NotificationCompat;
+import android.content.Context;
+import hcmute.edu.vn.teeticktick.R;
+
 import hcmute.edu.vn.teeticktick.model.Song;
 
 /**
@@ -45,6 +53,48 @@ public class MusicService extends Service {
     public class MusicBinder extends Binder {
         public MusicService getService() {
             return MusicService.this;
+        }
+    }
+
+    private static final int NOTIFICATION_ID = 202;
+    private static final String CHANNEL_ID = "MusicPlayerChannel";
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        createNotificationChannel();
+        Notification notification = createNotification("TeeTickTick Music");
+        startForeground(NOTIFICATION_ID, notification);
+        return START_NOT_STICKY;
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Music Player",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
+    }
+
+    private Notification createNotification(String title) {
+        return new NotificationCompat.Builder(this, CHANNEL_ID)
+                .setContentTitle("Đang phát nhạc")
+                .setContentText(title)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .build();
+    }
+
+    private void updateNotification(String title) {
+        Notification notification = createNotification(title);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.notify(NOTIFICATION_ID, notification);
         }
     }
 
@@ -115,6 +165,8 @@ public class MusicService extends Service {
             isPrepared = false;
             mediaPlayer.setDataSource(this, song.getUri());
             mediaPlayer.prepareAsync();
+
+            updateNotification(song.getTitle());
 
             if (callback != null) {
                 callback.onSongChanged(song);

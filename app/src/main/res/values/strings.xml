@@ -88,4 +88,6 @@
     <string name="nav_timeline">Dòng thời gian</string>
     <string name="nav_settings">Cài đặt</string>
     <string name="nav_music">Nhạc</string>
+    <string name="rescan_music">Quét lại</string>
+    <string name="rescan_music_desc">Tìm nhạc mới trên thiết bị</string>
 </resources>

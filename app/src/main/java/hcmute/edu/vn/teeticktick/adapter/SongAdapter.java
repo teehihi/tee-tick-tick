@@ -23,6 +23,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 
     public interface OnSongClickListener {
         void onSongClick(int position);
+        void onSongDeleteClick(int position);
     }
 
     public SongAdapter(OnSongClickListener listener) {
@@ -66,6 +67,12 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
                 listener.onSongClick(holder.getAdapterPosition());
             }
         });
+
+        holder.deleteIcon.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onSongDeleteClick(holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
@@ -75,7 +82,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 
     static class SongViewHolder extends RecyclerView.ViewHolder {
         TextView title, artist, duration;
-        ImageView icon;
+        ImageView icon, deleteIcon;
 
         SongViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -83,6 +90,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             artist = itemView.findViewById(R.id.song_artist);
             duration = itemView.findViewById(R.id.song_duration);
             icon = itemView.findViewById(R.id.song_icon);
+            deleteIcon = itemView.findViewById(R.id.btn_delete_song);
         }
     }
 }
