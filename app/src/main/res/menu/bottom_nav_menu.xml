@@ -17,6 +17,12 @@
         android:id="@+id/TimelineFragment"
         android:icon="@drawable/ic_timeline"
         android:title="@string/nav_timeline" />
+
+    <!-- Tab Nhạc: Phát nhạc tập trung khi làm task -->
+    <item
+        android:id="@+id/MusicPlayerFragment"
+        android:icon="@drawable/ic_music"
+        android:title="@string/nav_music" />
     
     <!-- Tab Cài đặt: Các tùy chọn cài đặt ứng dụng -->
     <item

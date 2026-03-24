@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         
         appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.FirstFragment, R.id.SecondFragment, R.id.TimelineFragment, R.id.SettingsFragment)
+                R.id.FirstFragment, R.id.SecondFragment, R.id.TimelineFragment, R.id.MusicPlayerFragment, R.id.SettingsFragment)
                 .setOpenableLayout(binding.drawerLayout)
                 .build();
         

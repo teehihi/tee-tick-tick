@@ -7,6 +7,19 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <!-- Music Player: đọc nhạc từ thiết bị -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <!-- Content Provider: custom permissions -->
+    <permission
+        android:name="hcmute.edu.vn.teeticktick.READ_TASKS"
+        android:protectionLevel="signature" />
+    <permission
+        android:name="hcmute.edu.vn.teeticktick.WRITE_TASKS"
+        android:protectionLevel="signature" />
+
     <application
         android:name=".TeeTickTickApplication"
         android:allowBackup="true"
@@ -51,6 +64,19 @@
             android:name=".service.DailyTaskService"
             android:exported="false"
             android:foregroundServiceType="specialUse" />
+
+        <!-- Music Bound Service -->
+        <service
+            android:name=".service.MusicService"
+            android:exported="false" />
+
+        <!-- Content Provider -->
+        <provider
+            android:name=".provider.TaskContentProvider"
+            android:authorities="hcmute.edu.vn.teeticktick.provider"
+            android:exported="true"
+            android:readPermission="hcmute.edu.vn.teeticktick.READ_TASKS"
+            android:writePermission="hcmute.edu.vn.teeticktick.WRITE_TASKS" />
 
     </application>
 

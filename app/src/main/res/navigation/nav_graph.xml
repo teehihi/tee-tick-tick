@@ -44,4 +44,10 @@
         android:name="hcmute.edu.vn.teeticktick.SettingsFragment"
         android:label="@string/settings"
         tools:layout="@layout/fragment_settings" />
+    
+    <fragment
+        android:id="@+id/MusicPlayerFragment"
+        android:name="hcmute.edu.vn.teeticktick.MusicPlayerFragment"
+        android:label="@string/nav_music"
+        tools:layout="@layout/fragment_music_player" />
 </navigation>

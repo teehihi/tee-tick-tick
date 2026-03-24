@@ -56,4 +56,7 @@ public interface TaskDao {
     
     @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueDate IS NOT NULL AND dueDate >= :startDate AND dueDate <= :endDate ORDER BY dueDate ASC")
     List<TaskEntity> getIncompleteTasksByDateRangeSync(long startDate, long endDate);
+    
+    @Query("SELECT * FROM tasks ORDER BY createdAt DESC")
+    List<TaskEntity> getAllTasksSync();
 }

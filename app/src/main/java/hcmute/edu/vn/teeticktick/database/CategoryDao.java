@@ -35,4 +35,7 @@ public interface CategoryDao {
     
     @Query("SELECT * FROM categories WHERE name = :name LIMIT 1")
     CategoryEntity getCategoryByNameSync(String name);
+    
+    @Query("SELECT * FROM categories WHERE id = :id LIMIT 1")
+    CategoryEntity getCategoryByIdSync(int id);
 }
