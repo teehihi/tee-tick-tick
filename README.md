@@ -2,7 +2,7 @@
 
 > Ứng dụng Android quản lý task cá nhân, tích hợp **Content Provider**, **Bound Service phát nhạc**, **WorkManager**, và **Foreground Service**.
 
-**Sinh viên:** Nguyễn Nhật Thiên  
+**Sinh viên:** Nguyễn Nhật Thiên, Phạm Công Trường  
 **Trường:** HCMUTE — Lập trình di động  
 **Package:** `hcmute.edu.vn.teeticktick`
 
