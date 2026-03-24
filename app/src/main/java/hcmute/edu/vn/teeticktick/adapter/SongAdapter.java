@@ -3,7 +3,7 @@ package hcmute.edu.vn.teeticktick.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -59,19 +59,27 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 
         // Highlight bài đang phát
         boolean isPlaying = position == currentPlayingIndex;
-        int highlightColor = isPlaying ? 0xFF4CAF50 : 0xFF333333; // green : dark
-        holder.title.setTextColor(highlightColor);
+        holder.title.setTextColor(isPlaying ? 0xFF2B7FFF : 0xFF000000);
 
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onSongClick(holder.getAdapterPosition());
-            }
+            if (listener != null) listener.onSongClick(holder.getAdapterPosition());
         });
 
-        holder.deleteIcon.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onSongDeleteClick(holder.getAdapterPosition());
-            }
+        // Nút "..." hiện popup menu
+        holder.moreIcon.setOnClickListener(v -> {
+            int pos = holder.getAdapterPosition();
+            PopupMenu popup = new PopupMenu(v.getContext(), v);
+            popup.getMenu().add(0, 0, 0, "Phát bài này");
+            popup.getMenu().add(0, 1, 1, "Xóa");
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == 0) {
+                    if (listener != null) listener.onSongClick(pos);
+                } else if (item.getItemId() == 1) {
+                    if (listener != null) listener.onSongDeleteClick(pos);
+                }
+                return true;
+            });
+            popup.show();
         });
     }
 
@@ -82,7 +90,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
 
     static class SongViewHolder extends RecyclerView.ViewHolder {
         TextView title, artist, duration;
-        ImageView icon, deleteIcon;
+        View icon, moreIcon;
 
         SongViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -90,7 +98,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongViewHolder
             artist = itemView.findViewById(R.id.song_artist);
             duration = itemView.findViewById(R.id.song_duration);
             icon = itemView.findViewById(R.id.song_icon);
-            deleteIcon = itemView.findViewById(R.id.btn_delete_song);
+            moreIcon = itemView.findViewById(R.id.btn_delete_song);
         }
     }
 }

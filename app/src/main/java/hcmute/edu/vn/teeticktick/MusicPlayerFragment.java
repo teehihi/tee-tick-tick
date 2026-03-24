@@ -20,7 +20,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.util.Log;
 import android.media.MediaScannerConnection;
@@ -66,9 +65,8 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
     private View btnGrantPermission;
     private View btnRescan;
     private TextView playerSongTitle, playerSongArtist;
-    private TextView playerCurrentTime, playerTotalTime;
-    private ImageButton btnPlayPause, btnPrevious, btnNext;
-    private SeekBar playerSeekbar;
+    private ImageButton btnPlayPause, btnNext;
+    private android.widget.ProgressBar playerSeekbar;
 
     // Bound Service
     private MusicService musicService;
@@ -156,14 +154,29 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Update toolbar
+        // Update toolbar & hide FAB only
         if (getActivity() != null) {
-            ((MainActivity) getActivity()).getSupportActionBar().setTitle(R.string.nav_music);
+            androidx.appcompat.app.ActionBar ab = ((MainActivity) getActivity()).getSupportActionBar();
+            if (ab != null) ab.setTitle(R.string.nav_music);
+            View fab = getActivity().findViewById(R.id.fab);
+            if (fab != null) fab.setVisibility(View.GONE);
         }
 
         initViews(view);
         setupRecyclerView();
         setupPlayerControls();
+
+        // Đẩy mini player lên trên bottom nav
+        View bottomNav = requireActivity().findViewById(R.id.bottom_nav);
+        bottomNav.post(() -> {
+            int navHeight = bottomNav.getHeight();
+            if (navHeight > 0) {
+                androidx.constraintlayout.widget.ConstraintLayout.LayoutParams lp =
+                    (androidx.constraintlayout.widget.ConstraintLayout.LayoutParams) playerControls.getLayoutParams();
+                lp.bottomMargin = navHeight / 4;
+                playerControls.setLayoutParams(lp);
+            }
+        });
 
         // Check permission và load nhạc
         if (hasAudioPermission()) {
@@ -192,10 +205,7 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
 
         playerSongTitle = view.findViewById(R.id.player_song_title);
         playerSongArtist = view.findViewById(R.id.player_song_artist);
-        playerCurrentTime = view.findViewById(R.id.player_current_time);
-        playerTotalTime = view.findViewById(R.id.player_total_time);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
-        btnPrevious = view.findViewById(R.id.btn_previous);
         btnNext = view.findViewById(R.id.btn_next);
         playerSeekbar = view.findViewById(R.id.player_seekbar);
         
@@ -203,6 +213,13 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
         if (btnAddMusic != null) {
             btnAddMusic.setOnClickListener(v -> pickAudioLauncher.launch("audio/*"));
         }
+
+        // Bấm vào mini player → mở NowPlaying full screen
+        playerControls.setOnClickListener(v -> {
+            hcmute.edu.vn.teeticktick.bottomsheet.NowPlayingBottomSheet sheet =
+                new hcmute.edu.vn.teeticktick.bottomsheet.NowPlayingBottomSheet();
+            sheet.show(getParentFragmentManager(), "NowPlaying");
+        });
     }
 
     private void setupRecyclerView() {
@@ -221,29 +238,8 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
             }
         });
 
-        btnPrevious.setOnClickListener(v -> {
-            if (isBound) musicService.playPrevious();
-        });
-
         btnNext.setOnClickListener(v -> {
             if (isBound) musicService.playNext();
-        });
-
-        playerSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser && isBound) {
-                    int duration = musicService.getDuration();
-                    int newPosition = (int) ((long) progress * duration / 100);
-                    musicService.seekTo(newPosition);
-                }
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         btnGrantPermission.setOnClickListener(v -> requestAudioPermission());
@@ -509,14 +505,12 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
     private void updatePlayerUI(Song song) {
         playerSongTitle.setText(song.getTitle());
         playerSongArtist.setText(song.getArtist());
-        playerTotalTime.setText(song.getFormattedDuration());
-        playerCurrentTime.setText("0:00");
         playerSeekbar.setProgress(0);
     }
 
     private void updatePlayPauseButton(boolean isPlaying) {
         btnPlayPause.setImageResource(
-                isPlaying ? android.R.drawable.ic_media_pause : android.R.drawable.ic_media_play);
+                isPlaying ? R.drawable.ic_pause_fill : R.drawable.ic_play_fill);
     }
 
     private void startSeekBarUpdate() {
@@ -529,7 +523,6 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
                     if (duration > 0) {
                         int progress = (int) ((long) currentPosition * 100 / duration);
                         playerSeekbar.setProgress(progress);
-                        playerCurrentTime.setText(formatTime(currentPosition));
                     }
                     handler.postDelayed(this, 500);
                 }
@@ -561,6 +554,11 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
             musicService.setCallback(null);
             requireContext().unbindService(serviceConnection);
             isBound = false;
+        }
+        // Restore FAB when leaving music screen
+        if (getActivity() != null) {
+            View fab = getActivity().findViewById(R.id.fab);
+            if (fab != null) fab.setVisibility(View.VISIBLE);
         }
     }
 }

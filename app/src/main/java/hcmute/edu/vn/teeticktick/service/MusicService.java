@@ -101,6 +101,10 @@ public class MusicService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // Start foreground immediately to avoid ANR when startForegroundService is called
+        createNotificationChannel();
+        startForeground(NOTIFICATION_ID, createNotification("TeeTickTick Music"));
+
         mediaPlayer = new MediaPlayer();
 
         mediaPlayer.setOnCompletionListener(mp -> {

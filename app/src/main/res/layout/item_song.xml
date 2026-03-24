@@ -2,24 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="68dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingHorizontal="20dp"
-    android:paddingVertical="12dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
     android:background="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true">
 
-    <!-- Music Note Icon -->
-    <ImageView
+    <!-- Music icon with gradient bg -->
+    <FrameLayout
         android:id="@+id/song_icon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@drawable/ic_music"
-        android:padding="8dp"
-        android:background="@drawable/bg_song_icon"
-        android:contentDescription="Song icon" />
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_song_icon">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_music"
+            android:contentDescription="Song icon"
+            app:tint="@android:color/white" />
+
+    </FrameLayout>
 
     <!-- Song Info -->
     <LinearLayout
@@ -27,29 +34,30 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="14dp">
+        android:layout_marginStart="12dp">
 
         <TextView
             android:id="@+id/song_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Song Title"
             android:textSize="15sp"
-            android:textColor="@color/text_primary"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="#000000"
             android:maxLines="1"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-medium" />
+            android:ellipsize="end" />
 
         <TextView
             android:id="@+id/song_artist"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Artist"
             android:textSize="13sp"
-            android:textColor="@color/text_secondary"
+            android:textColor="#6A7282"
             android:maxLines="1"
             android:ellipsize="end"
             android:layout_marginTop="2dp" />
+
     </LinearLayout>
 
     <!-- Duration -->
@@ -57,21 +65,28 @@
         android:id="@+id/song_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="3:45"
+        android:text="3:42"
         android:textSize="13sp"
-        android:textColor="@color/text_secondary"
-        android:layout_marginStart="8dp" />
+        android:textColor="#6A7282"
+        android:layout_marginEnd="8dp" />
 
-    <!-- Delete Button -->
-    <ImageView
+    <!-- More options button -->
+    <FrameLayout
         android:id="@+id/btn_delete_song"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@android:drawable/ic_menu_delete"
-        android:padding="8dp"
-        android:layout_marginStart="8dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Delete song"
-        app:tint="@color/text_secondary" />
+        android:clickable="true"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_ios_ellipsis"
+            android:contentDescription="More"
+            app:tint="#99A1AF" />
+
+    </FrameLayout>
 
 </LinearLayout>
