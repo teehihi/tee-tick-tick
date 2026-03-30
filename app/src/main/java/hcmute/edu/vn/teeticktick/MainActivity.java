@@ -122,18 +122,52 @@ public class MainActivity extends AppCompatActivity {
         // Update existing categories with notification sounds (migration)
         hcmute.edu.vn.teeticktick.utils.DatabaseMigrationHelper.updateCategoriesWithSounds(this);
         
-        // Request notification permission (Android 13+)
-        requestNotificationPermission();
+        // Request all permissions (Notifications, Calendar)
+        requestAppPermissions();
         
         // Start daily task summary service
         startDailyTaskService();
     }
     
-    private void requestNotificationPermission() {
+    private static final int REQUEST_ALL_PERMISSIONS = 1005;
+
+    private void requestAppPermissions() {
+        java.util.List<String> permissionsToRequest = new java.util.ArrayList<>();
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
+                permissionsToRequest.add(android.Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+
+        if (checkSelfPermission(android.Manifest.permission.READ_CALENDAR) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(android.Manifest.permission.READ_CALENDAR);
+        }
+        if (checkSelfPermission(android.Manifest.permission.WRITE_CALENDAR) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(android.Manifest.permission.WRITE_CALENDAR);
+        }
+
+        if (!permissionsToRequest.isEmpty()) {
+            requestPermissions(permissionsToRequest.toArray(new String[0]), REQUEST_ALL_PERMISSIONS);
+        } else {
+            // Đã có quyền lịch, thử debug ngầm hoặc báo OK nếu cần
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_ALL_PERMISSIONS || requestCode == 1002) {
+            boolean hasWrite = checkSelfPermission(android.Manifest.permission.WRITE_CALENDAR) == android.content.pm.PackageManager.PERMISSION_GRANTED;
+            if (hasWrite) {
+                android.util.Log.d("MainActivity", "Calendar permission granted");
+            } else {
+                android.util.Log.w("MainActivity", "Calendar permission denied — tasks will not sync to Calendar");
+                android.widget.Toast.makeText(this,
+                        "Chưa cấp quyền Lịch — task sẽ không đồng bộ với app Calendar",
+                        android.widget.Toast.LENGTH_LONG).show();
             }
         }
     }

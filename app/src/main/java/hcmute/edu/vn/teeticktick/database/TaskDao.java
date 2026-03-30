@@ -50,6 +50,9 @@ public interface TaskDao {
     
     @Query("DELETE FROM tasks WHERE isCompleted = 1")
     void deleteCompletedTasks();
+
+    @Query("UPDATE tasks SET calendarEventId = :eventId WHERE id = :taskId")
+    void updateCalendarEventId(int taskId, long eventId);
     
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     TaskEntity getTaskByIdSync(int taskId);

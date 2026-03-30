@@ -17,6 +17,7 @@ public class TaskEntity {
     private long createdAt;
     private Long startDate;  // user-selected start datetime
     private Long dueDate;    // user-selected end/deadline datetime
+    private Long calendarEventId; // ID của event trong Android Calendar (null nếu chưa sync)
 
     public TaskEntity(String title, String description, String emoji, boolean isCompleted,
                       String listName, int priority, long createdAt, Long startDate, Long dueDate) {
@@ -29,6 +30,7 @@ public class TaskEntity {
         this.createdAt = createdAt;
         this.startDate = startDate;
         this.dueDate = dueDate;
+        this.calendarEventId = null;
     }
 
     // Getters and Setters
@@ -110,5 +112,13 @@ public class TaskEntity {
 
     public void setDueDate(Long dueDate) {
         this.dueDate = dueDate;
+    }
+
+    public Long getCalendarEventId() {
+        return calendarEventId;
+    }
+
+    public void setCalendarEventId(Long calendarEventId) {
+        this.calendarEventId = calendarEventId;
     }
 }

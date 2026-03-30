@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import java.util.List;
 import java.util.concurrent.Executors;
 
-@Database(entities = {TaskEntity.class, CategoryEntity.class}, version = 4, exportSchema = false)
+@Database(entities = {TaskEntity.class, CategoryEntity.class}, version = 5, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     
     private static AppDatabase instance;
