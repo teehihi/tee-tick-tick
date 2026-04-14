@@ -78,6 +78,18 @@
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
 
+        <!-- BroadcastReceiver điều khiển nhạc từ notification -->
+        <receiver
+            android:name=".receiver.MusicPlayerReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="hcmute.edu.vn.teeticktick.ACTION_PLAY_PAUSE" />
+                <action android:name="hcmute.edu.vn.teeticktick.ACTION_NEXT" />
+                <action android:name="hcmute.edu.vn.teeticktick.ACTION_PREVIOUS" />
+                <action android:name="hcmute.edu.vn.teeticktick.ACTION_CLOSE" />
+            </intent-filter>
+        </receiver>
+
         <!-- Content Provider cho phép app khác truy cập tasks -->
         <provider
             android:name=".provider.TaskContentProvider"

@@ -71,9 +71,9 @@ public class CalendarRepository {
             
             Uri updateUri = ContentUris.withAppendedId(CalendarContract.Calendars.CONTENT_URI, calId);
             contentResolver.update(updateUri, values, null, null);
-            Log.d(TAG, "✅ Ensured calendar " + calId + " is VISIBLE");
+            Log.d(TAG, " Ensured calendar " + calId + " is VISIBLE");
         } catch (Exception e) {
-            Log.e(TAG, "❌ Error setting calendar visible: " + e.getMessage());
+            Log.e(TAG, " Error setting calendar visible: " + e.getMessage());
         }
     }
 

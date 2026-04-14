@@ -60,6 +60,9 @@ dependencies {
     // Vanniktech Emoji
     implementation("com.vanniktech:emoji-ios:0.16.0")
     
+    // Media
+    implementation("androidx.media:media:1.7.0")
+    
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
