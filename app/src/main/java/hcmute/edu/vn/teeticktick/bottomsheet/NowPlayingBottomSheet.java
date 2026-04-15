@@ -172,7 +172,7 @@ public class NowPlayingBottomSheet extends BottomSheetDialogFragment {
             window.setStatusBarColor(android.graphics.Color.TRANSPARENT);
 
             View bottomSheet = window.findViewById(
-                com.google.android.material.R.id.design_bottom_sheet);
+                    R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
                 behavior.setState(BottomSheetBehavior.STATE_EXPANDED);

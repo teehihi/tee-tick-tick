@@ -164,7 +164,7 @@ public class AddTaskBottomSheet extends BottomSheetDialogFragment {
                 (com.google.android.material.bottomsheet.BottomSheetDialog) getDialog();
         if (dialog != null) {
             android.widget.FrameLayout bottomSheet = dialog.findViewById(
-                    com.google.android.material.R.id.design_bottom_sheet);
+                    R.id.design_bottom_sheet);
             if (bottomSheet != null) {
                 com.google.android.material.bottomsheet.BottomSheetBehavior<android.widget.FrameLayout> behavior =
                         com.google.android.material.bottomsheet.BottomSheetBehavior.from(bottomSheet);

@@ -156,6 +156,13 @@ public class MusicService extends Service {
      * [◀ Previous] [▶ Play / ❚❚ Pause] [▶▶ Next] [✕ Close]
      */
     private Notification createMediaNotification(String title, String artist, boolean isPlaying) {
+        // Intent để mở app khi bấm vào thân thông báo
+        Intent openAppIntent = new Intent(this, hcmute.edu.vn.teeticktick.MainActivity.class);
+        openAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent contentIntent = PendingIntent.getActivity(
+                this, 0, openAppIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         // PendingIntents cho các nút
         PendingIntent prevIntent = createActionPendingIntent(MusicPlayerReceiver.ACTION_PREVIOUS);
         PendingIntent playPauseIntent = createActionPendingIntent(MusicPlayerReceiver.ACTION_PLAY_PAUSE);
@@ -171,8 +178,10 @@ public class MusicService extends Service {
                 .setContentText(artist)
                 .setSmallIcon(R.drawable.ic_ios_music)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
-                .setOngoing(isPlaying)
+                .setOngoing(true)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setGroup("MUSIC_GROUP_UNIQUE")
+                .setContentIntent(contentIntent)
                 // Các nút điều khiển
                 .addAction(R.drawable.ic_skip_previous_fill, "Previous", prevIntent)
                 .addAction(playPauseIcon, playPauseText, playPauseIntent)

@@ -313,7 +313,18 @@ public class MusicPlayerFragment extends Fragment implements SongAdapter.OnSongC
                         android.media.MediaMetadataRetriever mmr = new android.media.MediaMetadataRetriever();
                         mmr.setDataSource(f.getAbsolutePath());
                         String title = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_TITLE);
-                        if (title == null) title = f.getName();
+                        if (title == null) {
+                            title = f.getName();
+                            // Loại bỏ UUID (36 ký tự) + '_'
+                            if (title.length() > 37 && title.charAt(36) == '_') {
+                                title = title.substring(37);
+                            }
+                            // Loại bỏ phần đuôi mở rộng (VD: .mp3, .m4a)
+                            int dotIndex = title.lastIndexOf('.');
+                            if (dotIndex > 0) {
+                                title = title.substring(0, dotIndex);
+                            }
+                        }
                         String artist = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST);
                         if (artist == null) artist = "Unknown Artist";
                         String durationStr = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION);
